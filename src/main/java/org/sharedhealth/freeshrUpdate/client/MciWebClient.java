@@ -26,8 +26,7 @@ public class MciWebClient {
         this.identityServiceClient = identityServiceClient;
     }
 
-
-    private String getResponse(final String marker) throws URISyntaxException, IOException {
+    public String getMCIUpdateFeedContent(final String marker) throws URISyntaxException, IOException {
         URI mciURI = getMciURI(marker);
         log.debug("Reading from " + mciURI);
         Map<String, String> headers = new HashMap<>();
