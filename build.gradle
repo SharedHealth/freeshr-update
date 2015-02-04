@@ -2,11 +2,12 @@ apply plugin: 'java'
 apply plugin: 'rpm'
 apply plugin: 'idea'
 
+def mainClassName = "org.sharedhealth.freeshrUpdate.launch.Main"
 
 jar {
     baseName = 'freeshr-update'
     manifest {
-        attributes('Main-Class': "org.sharedhealth.freeshrUpdate.launch.Main")
+        attributes('Main-Class': mainClassName)
     }
 }
 
@@ -54,7 +55,7 @@ dependencies {
 }
 
 task checkStyle(type: Checkstyle) {
-    configFile file("${project.projectDir}/config/checkstyle/checkstyle.xml")
+    configFile file("${project.projectDir}/org.sharedhealth.freeshrUpdate.config/checkstyle/checkstyle.xml")
 }
 
 jar.dependsOn 'checkStyle'
@@ -72,13 +73,13 @@ def exportEnvironmentVariablesToXML(defaults) {
 
 
 def localEnv = new Properties();
-localEnv.load(new FileInputStream(file("${projectDir}/env/local.properties")))
+localEnv.load(new FileInputStream(new File('env/local.properties')))
 
 
 //build artifact
 private Properties loadConfig() {
     Properties properties = new Properties()
-    properties.load(new FileInputStream(file("${projectDir}/env/local.properties")));
+    properties.load(new FileInputStream(new File('env/local.properties')));
     properties
 }
 
@@ -136,6 +137,24 @@ test {
     environment localEnv
 }
 
+task runUpdate(type: JavaExec){
+    Properties properties = new Properties();
+    properties.load(new FileInputStream(new File('env/local.properties')))
+    main = mainClassName
+    jvmArgs = ['-DSHR_LOG_LEVEL=INFO']
+    classpath = sourceSets.main.runtimeClasspath
+    environment properties
+}
+
+task debugUpdate(type: JavaExec){
+    Properties properties = new Properties();
+    properties.load(new FileInputStream(new File('env/local.properties')))
+    main = mainClassName
+    jvmArgs = ['-DSHR_LOG_LEVEL=DEBUG']
+    classpath = sourceSets.main.runtimeClasspath
+    environment properties
+    debug = true
+}
 
 idea {
     workspace {

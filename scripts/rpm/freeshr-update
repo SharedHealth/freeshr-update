@@ -6,7 +6,7 @@
 # chkconfig: - 64 36
 # description: The freeshr-update shared health record system
 # processname: freeshr-update
-# config: /etc/default/freeshr-update
+# org.sharedhealth.freeshrUpdate.config: /etc/default/freeshr-update
 # pidfile: /var/run/freeshr-update/freeshr-update.pid
 ### BEGIN INIT INFO
 # Provides: freeshr-update

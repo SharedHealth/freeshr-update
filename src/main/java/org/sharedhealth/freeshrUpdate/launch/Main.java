@@ -1,13 +1,21 @@
 package org.sharedhealth.freeshrUpdate.launch;
 
+import org.sharedhealth.freeshrUpdate.schedule.Update;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Configuration
-@Import(UpdaterConfig.class)
+@ComponentScan(basePackages = {"org.sharedhealth.freeshrUpdate"})
 public class Main {
     public static void main(String[] args) throws Exception {
-        System.out.println("see something");
-//        SpringApplication.run(Main.class, args);
+        AnnotationConfigApplicationContext springContext =
+                new AnnotationConfigApplicationContext();
+        springContext.scan("org.sharedhealth.freeshrUpdate");
+        springContext.refresh();
+        springContext.getBean(Update.class).start();
     }
 }
