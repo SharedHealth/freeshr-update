@@ -5,7 +5,7 @@ import org.springframework.stereotype.Component;
 import java.util.Map;
 
 @Component
-public class SHRUpdateConfig {
+public class ShrUpdateProperties {
     private String mciScheme;
     private String mciHost;
     private String mciPort;
@@ -17,6 +17,11 @@ public class SHRUpdateConfig {
     private String cassandraPort;
     private String cassandraTimeout;
     private String updateIntervalInSeconds;
+    private String identityServerBaseUrl;
+
+    public String getIdentityServerBaseUrl() {
+        return identityServerBaseUrl;
+    }
 
     public String getMciSchema() {
         return mciScheme;
@@ -62,7 +67,7 @@ public class SHRUpdateConfig {
         return mciScheme + "://" + mciHost + ":" + mciPort + "/" + mciContextPath;
     }
 
-    public SHRUpdateConfig() {
+    public ShrUpdateProperties() {
         Map<String, String> env = System.getenv();
         updateIntervalInSeconds = env.get("UPDATE_INTERVAL_SECONDS");
         mciScheme = env.get("MCI_SCHEME");
@@ -75,5 +80,6 @@ public class SHRUpdateConfig {
         cassandraPort = env.get("CASSANDRA_PORT");
         cassandraKeySpace = env.get("CASSANDRA_KEYSPACE");
         cassandraTimeout = env.get("CASSANDRA_TIMEOUT");
+        identityServerBaseUrl = env.get("IDENTITY_SERVER_BASE_URL");
     }
 }

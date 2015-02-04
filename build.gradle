@@ -37,7 +37,8 @@ ext.libraries = [
         spring_ctx_support  : "org.springframework:spring-context-support:4.1.1.RELEASE",
         joda                : "joda-time:joda-time:2.5",
         rxjava              : "io.reactivex:rxjava:1.+",
-        spring_data_cassandra: "org.springframework.data:spring-data-cassandra:1.2.+"
+        spring_data_cassandra: "org.springframework.data:spring-data-cassandra:1.2.+",
+        jackson              : "com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.4.0"
 
 ]
 
