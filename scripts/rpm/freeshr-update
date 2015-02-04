@@ -1,0 +1,37 @@
+#!/bin/sh
+#
+# freeshr-update        This shell script takes care of starting and stopping
+#              the freeshr-update system
+#
+# chkconfig: - 64 36
+# description: The freeshr-update shared health record system
+# processname: freeshr-update
+# config: /etc/default/freeshr-update
+# pidfile: /var/run/freeshr-update/freeshr-update.pid
+### BEGIN INIT INFO
+# Provides: freeshr-update
+# Required-Start: $local_fs $remote_fs $network $named $syslog $time
+# Required-Stop: $local_fs $remote_fs $network $named $syslog $time
+# Short-Description: start and stop freeshr-update system,
+# Description: freeshr-update system
+### END INIT INFO
+
+. /etc/default/freeshr-update
+
+if [[ ! -e /var/run/freeshr-update ]]; then
+    ln -s /opt/freeshr-update/var /var/run/freeshr-update
+fi
+
+if [[ ! -e /var/log/freeshr-update ]]; then
+    mkdir /var/log/freeshr-update
+fi
+
+case "$1" in
+  start)
+    nohup java -DSHR_LOG_LEVEL=$SHR_LOG_LEVEL -jar /opt/freeshr-update/lib/freeshr-update.jar > /var/log/freeshr-update/freeshr-update.log &
+    echo $! > /var/run/freeshr-update/freeshr-update.pid
+    ;;
+  stop)
+    (cat /var/run/freeshr-update/freeshr-update.pid |  xargs -n 1 kill) || (true)
+    ;;
+esac
