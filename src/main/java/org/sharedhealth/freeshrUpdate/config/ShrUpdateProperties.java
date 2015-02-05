@@ -1,29 +1,53 @@
 package org.sharedhealth.freeshrUpdate.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
 
 @Component
 public class ShrUpdateProperties {
+    @Value("${MCI_SCHEME}")
     private String mciScheme;
+
+    @Value("${MCI_HOST}")
     private String mciHost;
+
+    @Value("${MCI_PORT}")
     private String mciPort;
+
+    @Value("${MCI_USER}")
     private String mciUser;
+
+    @Value("${MCI_PASSWORD}")
     private String mciPassword;
+
+    @Value("${MCI_CONTEXT_PATH}")
     private String mciContextPath;
+
+    @Value("${CASSANDRA_KEYSPACE}")
     private String cassandraKeySpace;
+
+    @Value("${CASSANDRA_HOST}")
     private String cassandraHost;
+
+    @Value("${CASSANDRA_PORT}")
     private String cassandraPort;
+
+    @Value("${CASSANDRA_TIMEOUT}")
     private String cassandraTimeout;
+
+    @Value("${UPDATE_INTERVAL_SECONDS}")
     private String updateIntervalInSeconds;
+
+    @Value("${IDENTITY_SERVER_BASE_URL}")
     private String identityServerBaseUrl;
 
     public String getIdentityServerBaseUrl() {
         return identityServerBaseUrl;
     }
 
-    public String getMciSchema() {
+    public String getMciScheme() {
         return mciScheme;
     }
 
@@ -65,21 +89,5 @@ public class ShrUpdateProperties {
 
     public String getMciBaseUrl() {
         return mciScheme + "://" + mciHost + ":" + mciPort + "/" + mciContextPath;
-    }
-
-    public ShrUpdateProperties() {
-        Map<String, String> env = System.getenv();
-        updateIntervalInSeconds = env.get("UPDATE_INTERVAL_SECONDS");
-        mciScheme = env.get("MCI_SCHEME");
-        mciHost = env.get("MCI_HOST");
-        mciPort = env.get("MCI_PORT");
-        mciContextPath = env.get("MCI_CONTEXT_PATH");
-        mciUser = env.get("MCI_USER");
-        mciPassword = env.get("MCI_PASSWORD");
-        cassandraHost = env.get("CASSANDRA_HOST");
-        cassandraPort = env.get("CASSANDRA_PORT");
-        cassandraKeySpace = env.get("CASSANDRA_KEYSPACE");
-        cassandraTimeout = env.get("CASSANDRA_TIMEOUT");
-        identityServerBaseUrl = env.get("IDENTITY_SERVER_BASE_URL");
     }
 }
