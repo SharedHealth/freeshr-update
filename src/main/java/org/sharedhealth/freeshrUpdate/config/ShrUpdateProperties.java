@@ -7,6 +7,8 @@ import java.util.Map;
 
 @Component
 public class ShrUpdateProperties {
+    public static final String MCI_MARKER = "MCI_MARKER";
+
     @Value("${MCI_SCHEME}")
     private String mciScheme;
 
@@ -43,20 +45,13 @@ public class ShrUpdateProperties {
     @Value("${IDENTITY_SERVER_BASE_URL}")
     private String identityServerBaseUrl;
 
+    @Value("${MARKER_FILE}")
+    private String markerFilePath;
+
+
+
     public String getIdentityServerBaseUrl() {
         return identityServerBaseUrl;
-    }
-
-    public String getMciScheme() {
-        return mciScheme;
-    }
-
-    public String getMciHost() {
-        return mciHost;
-    }
-
-    public String getMciPort() {
-        return mciPort;
     }
 
     public String getMciUser() {
@@ -90,4 +85,9 @@ public class ShrUpdateProperties {
     public String getMciBaseUrl() {
         return mciScheme + "://" + mciHost + ":" + mciPort + "/" + mciContextPath;
     }
+
+    public String getMarkerFilePath() {
+        return markerFilePath;
+    }
+
 }
