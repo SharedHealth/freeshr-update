@@ -19,12 +19,12 @@ public class MarkerStore {
         this.fileSystem = fileSystem;
     }
 
-    public Object getLastMCIMarker() throws IOException {
+    public String getLastMCIMarker() throws IOException {
         String markerFilePath = properties.getMarkerFilePath();
         createMarkerFileIfAbsent(markerFilePath);
 
         Properties markers = this.fileSystem.readMarkers(markerFilePath);
-        return markers.get(ShrUpdateProperties.MCI_MARKER);
+        return markers.get(ShrUpdateProperties.MCI_MARKER).toString();
     }
 
     public void updateMCIMarker(String mciMarker) throws IOException {
@@ -36,12 +36,8 @@ public class MarkerStore {
     }
 
 
-    private void createMarkerFileIfAbsent(String markerFilePath) {
+    private void createMarkerFileIfAbsent(String markerFilePath) throws IOException {
         if (!fileSystem.fileExists(markerFilePath))
-            fileSystem.createMarkersStore(markerFilePath, getDefaultMarkerStoreContent());
-    }
-
-    private String getDefaultMarkerStoreContent() {
-        return ShrUpdateProperties.MCI_MARKER + "=";
+            fileSystem.createMarkersStore(markerFilePath, ShrUpdateProperties.MCI_MARKER);
     }
 }

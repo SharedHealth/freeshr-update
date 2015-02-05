@@ -29,11 +29,14 @@ public class MarkerStoreTest {
         String filePath = "/opt/foo";
         when(properties.getMarkerFilePath()).thenReturn(filePath);
         when(fileSystem.fileExists(filePath)).thenReturn(false);
-        when(fileSystem.createMarkersStore(filePath, ShrUpdateProperties.MCI_MARKER + "=")).thenReturn(true);
-        when(fileSystem.readMarkers(filePath)).thenReturn(new Properties());
-        Object lastMCIMarker = new MarkerStore(properties, fileSystem).getLastMCIMarker();
+        when(fileSystem.createMarkersStore(filePath, ShrUpdateProperties.MCI_MARKER)).thenReturn(true);
+
+        Properties markers = new Properties();
+        markers.put(ShrUpdateProperties.MCI_MARKER, "");
+        when(fileSystem.readMarkers(filePath)).thenReturn(markers);
+        new MarkerStore(properties, fileSystem).getLastMCIMarker();
         verify(fileSystem, times(1)).fileExists(filePath);
-        verify(fileSystem, times(1)).createMarkersStore(filePath, ShrUpdateProperties.MCI_MARKER + "=");
+        verify(fileSystem, times(1)).createMarkersStore(filePath, ShrUpdateProperties.MCI_MARKER);
         verify(fileSystem, times(1)).readMarkers(filePath);
     }
 
@@ -49,13 +52,13 @@ public class MarkerStoreTest {
 
         when(properties.getMarkerFilePath()).thenReturn(filePath);
         when(fileSystem.fileExists(filePath)).thenReturn(false);
-        when(fileSystem.createMarkersStore(filePath, ShrUpdateProperties.MCI_MARKER + "=")).thenReturn(true);
+        when(fileSystem.createMarkersStore(filePath, ShrUpdateProperties.MCI_MARKER)).thenReturn(true);
         when(fileSystem.readMarkers(filePath)).thenReturn(markers);
 
         new MarkerStore(properties, fileSystem).updateMCIMarker(newMarker);
 
         verify(fileSystem, times(1)).fileExists(filePath);
-        verify(fileSystem, times(1)).createMarkersStore(filePath, ShrUpdateProperties.MCI_MARKER + "=");
+        verify(fileSystem, times(1)).createMarkersStore(filePath, ShrUpdateProperties.MCI_MARKER);
         verify(fileSystem, times(1)).readMarkers(filePath);
 
         verify(fileSystem, times(1)).updateMarkersStore(filePath, markers);

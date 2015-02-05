@@ -4,8 +4,8 @@ import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Map;
 import java.util.Properties;
 
 @Component
@@ -20,11 +20,15 @@ public class FileSystem {
         return new File(markerFilePath).isFile();
     }
 
-    public boolean createMarkersStore(String markerFilePath, String content) {
-        return false;
+    public boolean createMarkersStore(String markerFilePath, String defaultKey) throws IOException {
+        Properties markers = new Properties();
+        markers.put(defaultKey, "");
+        markers.store(new FileOutputStream(markerFilePath), "Saving markers");
+        return true;
     }
 
-    public boolean updateMarkersStore(String filePath, Properties markers) {
-        return false;
+    public boolean updateMarkersStore(String markerFilePath, Properties markers) throws IOException {
+        markers.store(new FileOutputStream(markerFilePath), "Saving markers");
+        return true;
     }
 }
