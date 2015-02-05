@@ -21,7 +21,6 @@ public class MarkerStoreTest {
     @Before
     public void setUp() throws Exception {
         initMocks(this);
-
     }
 
     @Test

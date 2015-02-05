@@ -1,5 +1,6 @@
 package org.sharedhealth.freeshrUpdate.client;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import org.junit.Before;
 import org.junit.Rule;
@@ -9,8 +10,12 @@ import org.sharedhealth.freeshrUpdate.config.ShrUpdateProperties;
 import org.sharedhealth.freeshrUpdate.identity.IdentityServiceClient;
 import org.sharedhealth.freeshrUpdate.identity.IdentityToken;
 
+import java.net.URI;
+import java.util.HashMap;
+import java.util.Map;
+
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
