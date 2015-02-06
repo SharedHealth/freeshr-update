@@ -1,13 +1,12 @@
 package org.sharedhealth.freeshrUpdate.config;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 
-import java.util.Map;
-
-@Component
-public class ShrUpdateProperties {
-    public static final String MCI_MARKER = "MCI_MARKER";
+@Configuration
+public class ShrUpdateConfiguration {
 
     @Value("${MCI_SCHEME}")
     private String mciScheme;
@@ -45,9 +44,23 @@ public class ShrUpdateProperties {
     @Value("${IDENTITY_SERVER_BASE_URL}")
     private String identityServerBaseUrl;
 
-    @Value("${MARKER_FILE}")
-    private String markerFilePath;
+    @Value("${DATABASE_URL}")
+    private String dbUrl;
 
+    @Value("${DATABASE_USER}")
+    private String dbUser;
+
+    @Value("${DATABASE_PASSWORD}")
+    private String dbPassword;
+
+    @Value("${DATABASE_DRIVER}")
+    private String dbDriver;
+
+    @Value("${DATABASE_CON_POOL_SIZE}")
+    private String dbConnectionPoolSize;
+
+    @Value("${DATABASE_CHANGELOG_FILE}")
+    private String dbChangeLogFile;
 
 
     public String getIdentityServerBaseUrl() {
@@ -86,8 +99,33 @@ public class ShrUpdateProperties {
         return mciScheme + "://" + mciHost + ":" + mciPort + "/" + mciContextPath;
     }
 
-    public String getMarkerFilePath() {
-        return markerFilePath;
+    public String getDbUrl() {
+        return dbUrl;
+    }
+
+    public String getDbUser() {
+        return dbUser;
+    }
+
+    public String getDbPassword() {
+        return dbPassword;
+    }
+
+    public String getDbDriver() {
+        return dbDriver;
+    }
+
+    public String getDbConnectionPoolSize() {
+        return dbConnectionPoolSize;
+    }
+
+    public String getDbChangeLogFile() {
+        return dbChangeLogFile;
+    }
+
+    @Bean
+    public static PropertySourcesPlaceholderConfigurer propertyPlaceholderConfigurer() {
+        return new PropertySourcesPlaceholderConfigurer();
     }
 
 }

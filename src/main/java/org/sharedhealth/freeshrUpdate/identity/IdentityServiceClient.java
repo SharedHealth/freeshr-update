@@ -3,7 +3,7 @@ package org.sharedhealth.freeshrUpdate.identity;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.sharedhealth.freeshrUpdate.client.WebClient;
-import org.sharedhealth.freeshrUpdate.config.ShrUpdateProperties;
+import org.sharedhealth.freeshrUpdate.config.ShrUpdateConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -13,11 +13,11 @@ import java.util.Map;
 
 @Component
 public class IdentityServiceClient {
-    private ShrUpdateProperties properties;
+    private ShrUpdateConfiguration properties;
     private IdentityStore identityStore;
 
     @Autowired
-    public IdentityServiceClient(ShrUpdateProperties properties, IdentityStore identityStore) {
+    public IdentityServiceClient(ShrUpdateConfiguration properties, IdentityStore identityStore) {
         this.properties = properties;
         this.identityStore = identityStore;
     }

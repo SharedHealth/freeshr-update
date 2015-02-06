@@ -1,7 +1,7 @@
 package org.sharedhealth.freeshrUpdate.schedule;
 
 
-import org.sharedhealth.freeshrUpdate.config.ShrUpdateProperties;
+import org.sharedhealth.freeshrUpdate.config.ShrUpdateConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import rx.Observable;
@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit;
 @Component
 public class Update {
     @Autowired
-    ShrUpdateProperties config;
+    ShrUpdateConfiguration config;
 
     public void start() {
         Observable.interval(config.getUpdateIntervalInSeconds(), TimeUnit.SECONDS,

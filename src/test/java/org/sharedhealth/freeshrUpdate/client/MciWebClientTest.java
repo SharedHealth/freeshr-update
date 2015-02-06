@@ -1,28 +1,28 @@
 package org.sharedhealth.freeshrUpdate.client;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
-import org.sharedhealth.freeshrUpdate.config.ShrUpdateProperties;
+import org.sharedhealth.freeshrUpdate.config.ShrUpdateConfiguration;
 import org.sharedhealth.freeshrUpdate.identity.IdentityServiceClient;
 import org.sharedhealth.freeshrUpdate.identity.IdentityToken;
 
 import java.net.URI;
-import java.util.HashMap;
-import java.util.Map;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.when;
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNotNull;
+import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
+import static org.sharedhealth.freeshrUpdate.helpers.ResourceHelper.asString;
 
 public class MciWebClientTest {
 
     @Mock
-    ShrUpdateProperties properties;
+    ShrUpdateConfiguration properties;
 
     @Mock
     IdentityServiceClient identityServiceClient;
@@ -36,39 +36,33 @@ public class MciWebClientTest {
     }
 
     @Test
-    public void shouldGetFeedFromMarkerOnwards() throws Exception {
-        MciWebClient mciWebClient = new MciWebClient(properties, identityServiceClient);
-        when(properties.getMciBaseUrl()).thenReturn("http://localhost:9997/api/v1/feed/patients");
+    public void shouldClearIdentityTokenIfUnauthorized() throws Exception {
+        MciWebClient mciWebClient = new MciWebClient(identityServiceClient);
         when(identityServiceClient.getOrCreateToken()).thenReturn(new IdentityToken("baz"));
         givenThat(get(urlEqualTo("/api/v1/feed/patients?last_marker=foo"))
+                .withHeader("X-Auth-Token", equalTo("baz"))
+                .withHeader("Accept", equalTo("application/atom+xml"))
                 .willReturn(aResponse()
-                        .withStatus(200)
-                        .withHeader("Content-Type", "application/xml+atom")
-                        .withBody("bar")));
+                        .withStatus(401)));
 
-        String mciUpdateFeedContent = mciWebClient.getMCIUpdateFeedContent("foo");
-        assertEquals("bar", mciUpdateFeedContent);
-
+        mciWebClient.get(URI.create
+                ("http://localhost:9997/api/v1/feed/patients?last_marker=foo"));
+        verify(identityServiceClient, times(1)).clearToken();
     }
 
     @Test
-    public void shouldGetFeedFromBeginningIfMarkerNotFound() throws Exception {
-        MciWebClient mciWebClient = new MciWebClient(properties, identityServiceClient);
-        when(properties.getMciBaseUrl()).thenReturn("http://localhost:9997/api/v1/feed/patients");
+    public void shouldGetResponse() throws Exception {
+        MciWebClient mciWebClient = new MciWebClient(identityServiceClient);
         when(identityServiceClient.getOrCreateToken()).thenReturn(new IdentityToken("baz"));
+        String body = asString("feeds/patientUpdatesFeed.xml");
         givenThat(get(urlEqualTo("/api/v1/feed/patients?last_marker=foo"))
                 .willReturn(aResponse()
                         .withStatus(200)
-                        .withHeader("Content-Type", "application/xml+atom")
-                        .withBody("bar")));
+                        .withBody(body)));
 
-        givenThat(get(urlEqualTo("/api/v1/feed/patients"))
-                .willReturn(aResponse()
-                        .withStatus(200)
-                        .withHeader("Content-Type", "application/xml+atom")
-                        .withBody("boom")));
-
-        String mciUpdateFeedContent = mciWebClient.getMCIUpdateFeedContent("");
-        assertEquals("boom", mciUpdateFeedContent);
+        String response = mciWebClient.get(URI.create
+                ("http://localhost:9997/api/v1/feed/patients?last_marker=foo"));
+        assertNotNull(response);
+        assertEquals(response, body);
     }
 }
