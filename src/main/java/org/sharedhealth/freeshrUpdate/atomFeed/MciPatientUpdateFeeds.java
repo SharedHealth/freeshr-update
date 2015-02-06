@@ -12,10 +12,10 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Map;
 
-public class MciFeeds extends AllFeeds {
+public class MciPatientUpdateFeeds extends AllFeeds {
     private MciWebClient mciWebClient;
 
-    public MciFeeds(MciWebClient mciWebClient) {
+    public MciPatientUpdateFeeds(MciWebClient mciWebClient) {
         this.mciWebClient = mciWebClient;
     }
 

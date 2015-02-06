@@ -11,7 +11,7 @@ import org.mockito.Mock;
 import org.sharedhealth.freeshrUpdate.client.MciWebClient;
 import org.sharedhealth.freeshrUpdate.config.DatabaseConfig;
 import org.sharedhealth.freeshrUpdate.config.ShrUpdateConfiguration;
-import org.sharedhealth.freeshrUpdate.eventWorker.PatientUpdater;
+import org.sharedhealth.freeshrUpdate.eventWorker.PatientUpdateEventWorker;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
@@ -37,7 +37,7 @@ public class MciFeedProcessorTest {
     @Mock
     private MciWebClient mciWebClient;
     @Mock
-    private PatientUpdater patientUpdater;
+    private PatientUpdateEventWorker patientUpdateEventWorker;
 
     @Autowired
     DataSourceTransactionManager txMgr;
@@ -62,12 +62,12 @@ public class MciFeedProcessorTest {
                 new AllMarkersJdbcImpl(transactionManager),
                 new AllFailedEventsJdbcImpl(transactionManager)
                 , transactionManager,
-                mciWebClient, patientUpdater);
+                mciWebClient, patientUpdateEventWorker);
         mciFeedProcessor.pullLatest();
 
         verify(mciWebClient, times(1)).get(feedUri);
         verify(mciWebClient, times(1)).get(nextUri);
-        verify(patientUpdater, times(25)).process(any(Event.class));
+        verify(patientUpdateEventWorker, times(25)).process(any(Event.class));
     }
 
     @After
