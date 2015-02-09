@@ -12,7 +12,7 @@ import javax.sql.DataSource;
 
 @Configuration
 @EnableTransactionManagement
-public class DatabaseConfig {
+public class AtomClientDatabaseConfig {
     @Autowired
     ShrUpdateConfiguration properties;
 

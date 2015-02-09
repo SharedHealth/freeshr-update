@@ -33,10 +33,10 @@ public class ShrUpdateConfiguration {
     private String cassandraHost;
 
     @Value("${CASSANDRA_PORT}")
-    private String cassandraPort;
+    private int cassandraPort;
 
     @Value("${CASSANDRA_TIMEOUT}")
-    private String cassandraTimeout;
+    private int cassandraTimeout;
 
     @Value("${UPDATE_INTERVAL_SECONDS}")
     private String updateIntervalInSeconds;
@@ -83,11 +83,11 @@ public class ShrUpdateConfiguration {
         return cassandraHost;
     }
 
-    public String getCassandraPort() {
+    public int getCassandraPort() {
         return cassandraPort;
     }
 
-    public String getCassandraTimeout() {
+    public int getCassandraTimeout() {
         return cassandraTimeout;
     }
 

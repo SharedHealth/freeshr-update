@@ -9,7 +9,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.sharedhealth.freeshrUpdate.client.MciWebClient;
-import org.sharedhealth.freeshrUpdate.config.DatabaseConfig;
+import org.sharedhealth.freeshrUpdate.config.AtomClientDatabaseConfig;
+import org.sharedhealth.freeshrUpdate.config.SHRCassandraConfig;
 import org.sharedhealth.freeshrUpdate.config.ShrUpdateConfiguration;
 import org.sharedhealth.freeshrUpdate.eventWorker.PatientUpdateEventWorker;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +32,7 @@ import static org.sharedhealth.freeshrUpdate.helpers.ResourceHelper.asString;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @TestPropertySource("/test.properties")
-@ContextConfiguration(classes = {ShrUpdateConfiguration.class, DatabaseConfig.class})
+@ContextConfiguration(classes = {ShrUpdateConfiguration.class, AtomClientDatabaseConfig.class})
 @ComponentScan(basePackages = {"org.sharedhealth.freeshrUpdate"})
 public class MciFeedProcessorTest {
     @Mock

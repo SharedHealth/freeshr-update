@@ -56,4 +56,25 @@ public class PatientUpdate {
     public void setEventTime(Date eventTime) {
         this.eventTime = eventTime;
     }
+
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        PatientUpdate that = (PatientUpdate) o;
+
+        if (!eventId.equals(that.eventId)) return false;
+        if (!healthId.equals(that.healthId)) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = eventId.hashCode();
+        result = 31 * result + healthId.hashCode();
+        return result;
+    }
 }

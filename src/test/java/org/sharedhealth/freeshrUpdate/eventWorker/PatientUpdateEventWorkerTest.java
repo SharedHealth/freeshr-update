@@ -18,7 +18,6 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -68,8 +67,6 @@ public class PatientUpdateEventWorkerTest {
                 "\"district_id\":\"19\",\"upazila_id\":\"15\",\"country_code\":\"050\"}}}]]>";
 
 
-
-
         content.setValue(contents);
         return Arrays.asList(content);
 
@@ -78,7 +75,7 @@ public class PatientUpdateEventWorkerTest {
     private List generateNameChangeContents() {
         Content content = new Content();
         content.setType(ATOMFEED_MEDIA_TYPE);
-        String contents ="<![CDATA[{\"year\":2015,\"eventId\":\"2557dbe0-a798-11e4-ad63-6d5f88e0f020\"," +
+        String contents = "<![CDATA[{\"year\":2015,\"eventId\":\"2557dbe0-a798-11e4-ad63-6d5f88e0f020\"," +
                 "\"healthId\":\"5960887819567104001\",\"changeSet\":\"{\\\"given_name\\\":\\\"updated\\\"}\"," +
                 "\"eventTime\":\"2015-01-29T09:21:03.134Z\",\"eventTimeAsString\":\"2015-01-29T09:21:03.134Z\"," +
                 "\"changeSetMap\":{\"given_name\":\"updated\"}}]]>";
