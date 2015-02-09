@@ -21,6 +21,9 @@ public class PatientQueryBuilder {
     @Autowired
     public ShrUpdateConfiguration configuration;
 
+    public PatientQueryBuilder() {
+    }
+
     public PatientQueryBuilder(ShrUpdateConfiguration configuration) {
         this.configuration = configuration;
     }

@@ -10,16 +10,22 @@ import org.ict4h.atomfeed.client.domain.Event;
 import org.ict4h.atomfeed.client.service.EventWorker;
 import org.sharedhealth.freeshrUpdate.domain.PatientUpdate;
 import org.sharedhealth.freeshrUpdate.shrUpdate.PatientRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import rx.functions.Action1;
 
 import java.io.IOException;
 
 @Component
 public class PatientUpdateEventWorker implements EventWorker {
-
+    private static final Logger LOG = LoggerFactory.getLogger(PatientUpdateEventWorker.class);
     @Autowired
     PatientRepository patientRepository;
+
+    public PatientUpdateEventWorker() {
+    }
 
     public PatientUpdateEventWorker(PatientRepository patientRepository) {
         this.patientRepository = patientRepository;
@@ -28,8 +34,13 @@ public class PatientUpdateEventWorker implements EventWorker {
     @Override
     public void process(Event event) {
         try {
-            PatientUpdate patientUpdate = readFrom(extractContent(event.getContent()), PatientUpdate.class);
-            patientRepository.applyUpdate(patientUpdate);
+            final PatientUpdate patientUpdate = readFrom(extractContent(event.getContent()), PatientUpdate.class);
+            patientRepository.applyUpdate(patientUpdate).subscribe(new Action1<Boolean>() {
+                @Override
+                public void call(Boolean updated) {
+                    LOG.debug(String.format("Patient %s %s updated", patientUpdate.getHealthId(), updated? "": "not"));
+                }
+            });
 
         } catch (IOException e) {
             e.printStackTrace();

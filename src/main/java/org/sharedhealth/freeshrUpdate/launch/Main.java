@@ -16,6 +16,6 @@ public class Main {
                 new AnnotationConfigApplicationContext();
         springContext.scan("org.sharedhealth.freeshrUpdate");
         springContext.refresh();
-        springContext.getBean(Scheduler.class).start(Schedulers.immediate());
+        springContext.getBean(Scheduler.class).start();
     }
 }

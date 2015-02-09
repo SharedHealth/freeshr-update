@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.stereotype.Component;
 import rx.Observable;
+import rx.schedulers.Schedulers;
 
 import java.util.concurrent.TimeUnit;
 
@@ -26,6 +27,8 @@ public class Scheduler {
     @Autowired
     MciWebClient mciWebClient;
 
+    public Scheduler() {
+    }
 
     public Scheduler(ShrUpdateConfiguration config, DataSourceTransactionManager platformTransactionManager,
                      PatientUpdateEventWorker patientUpdateEventWorker, MciWebClient mciWebClient) {
@@ -36,7 +39,7 @@ public class Scheduler {
         this.mciWebClient = mciWebClient;
     }
 
-    public void start(rx.Scheduler scheduler) {
+    public void start() {
         AtomFeedSpringTransactionManager transactionManager = new AtomFeedSpringTransactionManager
                 (platformTransactionManager);
 
@@ -48,7 +51,7 @@ public class Scheduler {
                 patientUpdateEventWorker);
 
         Observable.interval(config.getUpdateIntervalInSeconds(), TimeUnit.SECONDS,
-                scheduler)
+                Schedulers.immediate())
                 .startWith(-1L) // to start action immediately
                 .subscribe(new ShrUpdateAction(mciFeedProcessor));
     }
