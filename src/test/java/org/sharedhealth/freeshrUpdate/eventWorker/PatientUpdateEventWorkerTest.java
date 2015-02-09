@@ -11,6 +11,7 @@ import org.sharedhealth.freeshrUpdate.domain.AddressData;
 import org.sharedhealth.freeshrUpdate.domain.PatientData;
 import org.sharedhealth.freeshrUpdate.domain.PatientUpdate;
 import org.sharedhealth.freeshrUpdate.shrUpdate.PatientRepository;
+import rx.Observable;
 
 import java.util.Arrays;
 import java.util.Date;
@@ -36,7 +37,7 @@ public class PatientUpdateEventWorkerTest {
 
     @Test
     public void shouldDeserializePatientUpdates() throws Exception {
-        when(patientRepository.applyUpdate(any(PatientUpdate.class))).thenReturn(true);
+        when(patientRepository.applyUpdate(any(PatientUpdate.class))).thenReturn(Observable.just(true));
         Entry entry = new Entry();
         entry.setId(UUID.randomUUID().toString());
         entry.setTitle("foo");
