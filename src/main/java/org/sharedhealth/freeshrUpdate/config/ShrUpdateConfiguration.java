@@ -5,6 +5,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 
+import java.net.URI;
+
 @Configuration
 public class ShrUpdateConfiguration {
 
@@ -95,8 +97,8 @@ public class ShrUpdateConfiguration {
         return Integer.parseInt(updateIntervalInSeconds);
     }
 
-    public String getMciBaseUrl() {
-        return mciScheme + "://" + mciHost + ":" + mciPort + "/" + mciContextPath;
+    public URI getMciBaseUrl() {
+        return URI.create(mciScheme + "://" + mciHost + ":" + mciPort + "/" + mciContextPath);
     }
 
     public String getDbUrl() {

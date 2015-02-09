@@ -1,9 +1,17 @@
 package org.sharedhealth.freeshrUpdate.schedule;
 
+import org.sharedhealth.freeshrUpdate.atomFeed.MciFeedProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ShrUpdateAction extends rx.Subscriber<Long> {
+
+    private final MciFeedProcessor mciFeedProcessor;
+
+    public ShrUpdateAction(MciFeedProcessor mciFeedProcessor) {
+        this.mciFeedProcessor = mciFeedProcessor;
+    }
+
     private static final Logger LOG = LoggerFactory.getLogger(ShrUpdateAction.class);
 
     @Override
@@ -18,6 +26,7 @@ public class ShrUpdateAction extends rx.Subscriber<Long> {
 
     @Override
     public void onNext(Long aLong) {
-        LOG.info(String.format("starting iteration number: %s", aLong));
+        LOG.debug(String.format("starting iteration number: %s", aLong));
+        mciFeedProcessor.pullLatest();
     }
 }
