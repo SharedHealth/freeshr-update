@@ -29,7 +29,7 @@ public class PatientRepositoryTest {
     }
 
     @Test
-    public void shouldUpdateConfidential() throws Exception {
+    public void shouldUpdatePatient() throws Exception {
         PatientUpdate patientUpdate = PatientUpdateMother.confidentialPatient();
         when(patientUpdateQuery.get(patientUpdate)).thenReturn(getUpdateQuery());
         new PatientRepository(cqlOperations, patientUpdateQuery).applyUpdate(patientUpdate);

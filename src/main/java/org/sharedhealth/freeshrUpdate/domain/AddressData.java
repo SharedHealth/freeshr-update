@@ -1,134 +1,148 @@
 package org.sharedhealth.freeshrUpdate.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class AddressData {
-    private String address_line;
-    private String division_id;
-    private String district_id;
-    private String upazila_id;
-    private String city_corporation_id;
-    private String union_or_urban_ward_id;
-    private String rural_ward_id;
-    private String holding_number;
+    @JsonProperty("address_line")
+    private String addressLine;
+    @JsonProperty("division_id")
+    private String divisionId;
+    @JsonProperty("district_id")
+    private String districtId;
+    @JsonProperty("upazila_id")
+    private String upazilaId;
+    @JsonProperty("city_corporation_id")
+    private String cityCorporationId;
+    @JsonProperty("union_or_urban_ward_id")
+    private String unionOrUrbanWardId;
+    @JsonProperty("rural_ward_id")
+    private String ruralWardId;
+    @JsonProperty("holding_number")
+    private String holdingNumber;
+    @JsonProperty("street")
     private String street;
-    private String area_mouja;
+    @JsonProperty("area_mouja")
+    private String areaMouja;
+    @JsonProperty("village")
     private String village;
-    private String post_office;
-    private String post_code;
-    private String country_code;
+    @JsonProperty("post_office")
+    private String postOffice;
+    @JsonProperty("post_code")
+    private String postCode;
+    @JsonProperty("country_code")
+    private String countryCode;
 
     public String getAddressLine() {
-        return address_line;
+        return addressLine;
+    }
+
+    public void setAddressLine(String addressLine) {
+        this.addressLine = addressLine;
     }
 
     public String getDivisionId() {
-        return division_id;
+        return divisionId;
+    }
+
+    public void setDivisionId(String divisionId) {
+        this.divisionId = divisionId;
     }
 
     public String getDistrictId() {
-        return district_id;
+        return districtId;
+    }
+
+    public void setDistrictId(String districtId) {
+        this.districtId = districtId;
     }
 
     public String getUpazilaId() {
-        return upazila_id;
+        return upazilaId;
+    }
+
+    public void setUpazilaId(String upazilaId) {
+        this.upazilaId = upazilaId;
+    }
+
+    public String getCityCorporationId() {
+        return cityCorporationId;
+    }
+
+    public void setCityCorporationId(String cityCorporationId) {
+        this.cityCorporationId = cityCorporationId;
     }
 
     public String getUnionOrUrbanWardId() {
-        return union_or_urban_ward_id;
+        return unionOrUrbanWardId;
+    }
+
+    public void setUnionOrUrbanWardId(String unionOrUrbanWardId) {
+        this.unionOrUrbanWardId = unionOrUrbanWardId;
+    }
+
+    public String getRuralWardId() {
+        return ruralWardId;
+    }
+
+    public void setRuralWardId(String ruralWardId) {
+        this.ruralWardId = ruralWardId;
     }
 
     public String getHoldingNumber() {
-        return holding_number;
+        return holdingNumber;
+    }
+
+    public void setHoldingNumber(String holdingNumber) {
+        this.holdingNumber = holdingNumber;
     }
 
     public String getStreet() {
         return street;
     }
 
+    public void setStreet(String street) {
+        this.street = street;
+    }
+
     public String getAreaMouja() {
-        return area_mouja;
+        return areaMouja;
+    }
+
+    public void setAreaMouja(String areaMouja) {
+        this.areaMouja = areaMouja;
     }
 
     public String getVillage() {
         return village;
     }
 
-    public String getPostOffice() {
-        return post_office;
-    }
-
-    public String getCountryCode() {
-        return country_code;
-    }
-
-    public String getCityCorporationId() {
-        return city_corporation_id;
-    }
-
-    public String getRuralWardId() {
-        return rural_ward_id;
-    }
-
-    public String getPostCode() {
-        return post_code;
-    }
-
-
-    public void setAddress_line(String address_line) {
-        this.address_line = address_line;
-    }
-
-    public void setDivision_id(String division_id) {
-        this.division_id = division_id;
-    }
-
-    public void setDistrict_id(String district_id) {
-        this.district_id = district_id;
-    }
-
-    public void setUpazila_id(String upazila_id) {
-        this.upazila_id = upazila_id;
-    }
-
-    public void setCity_corporation_id(String city_corporation_id) {
-        this.city_corporation_id = city_corporation_id;
-    }
-
-    public void setUnion_or_urban_ward_id(String union_or_urban_ward_id) {
-        this.union_or_urban_ward_id = union_or_urban_ward_id;
-    }
-
-    public void setRural_ward_id(String rural_ward_id) {
-        this.rural_ward_id = rural_ward_id;
-    }
-
-    public void setHolding_number(String holding_number) {
-        this.holding_number = holding_number;
-    }
-
-    public void setStreet(String street) {
-        this.street = street;
-    }
-
-    public void setArea_mouja(String area_mouja) {
-        this.area_mouja = area_mouja;
-    }
-
     public void setVillage(String village) {
         this.village = village;
     }
 
-    public void setPost_office(String post_office) {
-        this.post_office = post_office;
+    public String getPostOffice() {
+        return postOffice;
     }
 
-    public void setPost_code(String post_code) {
-        this.post_code = post_code;
+    public void setPostOffice(String postOffice) {
+        this.postOffice = postOffice;
     }
 
-    public void setCountry_code(String country_code) {
-        this.country_code = country_code;
+    public String getPostCode() {
+        return postCode;
+    }
+
+    public void setPostCode(String postCode) {
+        this.postCode = postCode;
+    }
+
+    public String getCountryCode() {
+        return countryCode;
+    }
+
+    public void setCountryCode(String countryCode) {
+        this.countryCode = countryCode;
     }
 }

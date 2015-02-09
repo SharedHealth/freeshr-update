@@ -2,10 +2,9 @@ package org.sharedhealth.freeshrUpdate.domain;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.io.IOException;
 import java.util.Date;
+import java.util.Map;
 import java.util.UUID;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -14,7 +13,7 @@ public class PatientUpdate {
     private int year;
     private UUID eventId;
     private String healthId;
-    private PatientData changeSetMap;
+    private PatientData changeSetMap = new PatientData();
     private Date eventTime;
 
     public int getYear() {
@@ -76,5 +75,9 @@ public class PatientUpdate {
         int result = eventId.hashCode();
         result = 31 * result + healthId.hashCode();
         return result;
+    }
+
+    public boolean hasChanges() {
+        return getChangeSet().hasChanges();
     }
 }

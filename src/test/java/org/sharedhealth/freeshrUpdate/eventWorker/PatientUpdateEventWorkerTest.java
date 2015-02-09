@@ -50,7 +50,7 @@ public class PatientUpdateEventWorkerTest {
         assertEquals("5960887819567104001", patientUpdate.getHealthId());
         assertEquals(2015, patientUpdate.getYear());
         PatientData patientData = patientUpdate.getChangeSet();
-        AddressData presentAddress = patientData.getPresentAddress();
+        AddressData presentAddress = patientData.getAddress();
         assertEquals("Test", presentAddress.getAddressLine());
     }
 

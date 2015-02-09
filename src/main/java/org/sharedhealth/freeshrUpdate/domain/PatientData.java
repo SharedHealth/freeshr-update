@@ -2,43 +2,68 @@ package org.sharedhealth.freeshrUpdate.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class PatientData {
-    private String given_name;
-    private String sur_name;
+    @JsonProperty("given_name")
+    private String givenName;
+    @JsonProperty("sur_name")
+    private String surName;
+    @JsonProperty("confidential")
     private String confidential;
-    private AddressData present_address;
+    @JsonProperty("present_address")
+    private AddressData address = new AddressData();
 
     public String getGivenName() {
-        return given_name;
+        return givenName;
     }
 
     public String getSurName() {
-        return sur_name;
+        return surName;
     }
 
     public String getConfidential() {
         return confidential;
     }
 
-    public AddressData getPresentAddress() {
-        return present_address;
+    public AddressData getAddress() {
+        return address;
     }
 
-    public void setGiven_name(String given_name) {
-        this.given_name = given_name;
+    public void setGivenName(String givenName) {
+        this.givenName = givenName;
     }
 
-    public void setSur_name(String sur_name) {
-        this.sur_name = sur_name;
+    public void setSurName(String surName) {
+        this.surName = surName;
     }
 
     public void setConfidential(String confidential) {
         this.confidential = confidential;
     }
 
-    public void setPresent_address(AddressData present_address) {
-        this.present_address = present_address;
+    public void setAddress(AddressData present_address) {
+        this.address = present_address;
+    }
+
+    public boolean hasChanges() {
+        HashMap<String, String> changes = new HashMap<>();
+        changes.put("confidential", confidential);
+
+        changes.put("address_line", address.getAddressLine());
+        changes.put("division_id", address.getDivisionId());
+        changes.put("district_id", address.getDistrictId());
+        changes.put("upazila_id", address.getUpazilaId());
+        changes.put("city_corporation_id", address.getCityCorporationId());
+        changes.put("union_urban_ward_id", address.getUnionOrUrbanWardId());
+
+        for (String change : changes.values()) {
+            if(StringUtils.isNotBlank(change)) return true;
+        }
+        return false;
     }
 }
