@@ -1,4 +1,5 @@
 package org.sharedhealth.freeshrUpdate.identity;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class IdentityToken {

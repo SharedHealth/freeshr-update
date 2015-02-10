@@ -3,8 +3,10 @@ package org.sharedhealth.freeshrUpdate.launch;
 import org.sharedhealth.freeshrUpdate.config.AtomClientDatabaseConfig;
 import org.sharedhealth.freeshrUpdate.config.SHRCassandraConfig;
 import org.sharedhealth.freeshrUpdate.schedule.Scheduler;
-import org.springframework.context.annotation.*;
-import rx.schedulers.Schedulers;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 
 @Configuration
 @Import({AtomClientDatabaseConfig.class, SHRCassandraConfig.class})

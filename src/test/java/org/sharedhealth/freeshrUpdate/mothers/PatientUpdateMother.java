@@ -8,13 +8,14 @@ import java.util.UUID;
 
 public class PatientUpdateMother {
 
-    public static PatientUpdate confidentialPatient(){
+    public static PatientUpdate confidentialPatient() {
         return patientUpdate(UUID.randomUUID().toString(), UUID.randomUUID(), changeOnlyConfidential("YES"));
     }
 
-    public static PatientUpdate confidentialPatient(String healthId){
+    public static PatientUpdate confidentialPatient(String healthId) {
         return patientUpdate(healthId, UUID.randomUUID(), changeOnlyConfidential("YES"));
     }
+
     private static PatientUpdate patientUpdate(String healthId, UUID eventId, PatientData patientData) {
         PatientUpdate patientUpdate = new PatientUpdate();
         patientUpdate.setHealthId(healthId);

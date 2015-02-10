@@ -58,7 +58,8 @@ public class PatientRepositoryTest {
         ArgumentCaptor<Select> captor = ArgumentCaptor.forClass(Select.class);
         verify(cqlOperations, times(1)).queryAsynchronously(captor.capture());
         Statement statement = captor.getValue();
-        assertTrue(statement.toString().contains(String.format("WHERE health_id='%s' LIMIT 1", patientUpdate.getHealthId())));
+        assertTrue(statement.toString().contains(String.format("WHERE health_id='%s' LIMIT 1", patientUpdate
+                .getHealthId())));
     }
 
     @Test

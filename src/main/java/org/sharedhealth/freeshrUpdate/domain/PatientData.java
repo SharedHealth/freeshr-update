@@ -67,7 +67,7 @@ public class PatientData {
 
     public Map<String, Object> getChanges() {
         HashMap<String, Object> changes = new HashMap<>();
-        if(null != confidential)
+        if (null != confidential)
             changes.put("confidential", "YES".equalsIgnoreCase(confidential));
         changes.put("gender", gender);
 

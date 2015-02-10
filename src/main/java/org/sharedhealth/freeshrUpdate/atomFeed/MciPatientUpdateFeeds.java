@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Map;
 
 public class MciPatientUpdateFeeds extends AllFeeds {
     private MciWebClient mciWebClient;

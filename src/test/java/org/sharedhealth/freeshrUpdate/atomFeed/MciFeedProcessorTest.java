@@ -10,7 +10,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.sharedhealth.freeshrUpdate.client.MciWebClient;
 import org.sharedhealth.freeshrUpdate.config.AtomClientDatabaseConfig;
-import org.sharedhealth.freeshrUpdate.config.SHRCassandraConfig;
 import org.sharedhealth.freeshrUpdate.config.ShrUpdateConfiguration;
 import org.sharedhealth.freeshrUpdate.eventWorker.PatientUpdateEventWorker;
 import org.springframework.beans.factory.annotation.Autowired;

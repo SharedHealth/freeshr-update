@@ -4,7 +4,6 @@ import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.datastax.driver.core.querybuilder.Select;
 import com.datastax.driver.core.querybuilder.Update;
-import org.apache.commons.lang3.StringUtils;
 import org.sharedhealth.freeshrUpdate.config.ShrUpdateConfiguration;
 import org.sharedhealth.freeshrUpdate.domain.PatientData;
 import org.sharedhealth.freeshrUpdate.domain.PatientUpdate;

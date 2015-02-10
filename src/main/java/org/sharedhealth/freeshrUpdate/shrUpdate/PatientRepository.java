@@ -1,7 +1,6 @@
 package org.sharedhealth.freeshrUpdate.shrUpdate;
 
 import com.datastax.driver.core.ResultSet;
-import com.datastax.driver.core.Row;
 import org.sharedhealth.freeshrUpdate.domain.PatientUpdate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,12 +31,12 @@ public class PatientRepository {
     }
 
     public Observable<Boolean> applyUpdate(final PatientUpdate patientUpdate) {
-        if(!patientUpdate.hasChanges()) return Observable.just(false);
+        if (!patientUpdate.hasChanges()) return Observable.just(false);
         final String healthId = patientUpdate.getHealthId();
         return findPatient(healthId).flatMap(new Func1<Boolean, Observable<Boolean>>() {
             @Override
             public Observable<Boolean> call(Boolean patientExists) {
-                LOG.debug(String.format("Patient %s %s found", healthId, patientExists? "": "not"));
+                LOG.debug(String.format("Patient %s %s found", healthId, patientExists ? "" : "not"));
                 return patientExists ? savePatientUpdate(patientUpdate) : Observable.just(false);
             }
         }, onError(), onCompletion());
