@@ -14,7 +14,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import rx.Observable;
 import rx.functions.Action1;
+import rx.functions.Func0;
+import rx.functions.Func1;
 
 import java.io.IOException;
 
@@ -38,14 +41,21 @@ public class PatientUpdateEventWorker implements EventWorker {
             patientRepository.applyUpdate(patientUpdate).subscribe(new Action1<Boolean>() {
                 @Override
                 public void call(Boolean updated) {
-                    LOG.debug(String.format("Patient %s %s updated", patientUpdate.getHealthId(), updated? "": "not"));
+                    LOG.debug(String.format("Patient %s %s updated", patientUpdate.getHealthId(), updated ? "" :
+                            "not"));
+                }
+            }, new Action1<Throwable>() {
+                @Override
+                public void call(Throwable throwable) {
+                    LOG.error(throwable.getMessage());
                 }
             });
 
         } catch (IOException e) {
-            e.printStackTrace();
+            LOG.error(e.getMessage());
         }
     }
+
 
     @Override
     public void cleanUp(Event event) {
@@ -69,4 +79,6 @@ public class PatientUpdateEventWorker implements EventWorker {
         return content.replaceFirst(
                 "^<!\\[CDATA\\[", "").replaceFirst("\\]\\]>$", "");
     }
+
+
 }

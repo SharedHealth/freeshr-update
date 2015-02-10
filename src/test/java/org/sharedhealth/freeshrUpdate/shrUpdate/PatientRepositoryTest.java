@@ -43,7 +43,7 @@ public class PatientRepositoryTest {
     @Test
     public void shouldIgnoreNonexistentPatient() throws Exception {
         PatientUpdate patientUpdate = PatientUpdateMother.confidentialPatient();
-        when(result.getInt(0)).thenReturn(0);
+        when(result.getLong("count")).thenReturn(0L);
         when(resultSet.one()).thenReturn(result);
         when(resultSetFuture.get()).thenReturn(resultSet);
         Select selectQuery = getSelectQuery(patientUpdate.getHealthId());
@@ -65,7 +65,7 @@ public class PatientRepositoryTest {
     public void shouldUpdateExistingPatient() throws Exception {
         PatientUpdate patientUpdate = PatientUpdateMother.confidentialPatient();
 
-        when(result.getInt(0)).thenReturn(1);
+        when(result.getLong("count")).thenReturn(1L);
         when(resultSet.one()).thenReturn(result);
         when(resultSetFuture.get()).thenReturn(resultSet);
         Select selectQuery = getSelectQuery(patientUpdate.getHealthId());

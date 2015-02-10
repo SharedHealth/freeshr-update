@@ -1,8 +1,12 @@
 package org.sharedhealth.freeshrUpdate.domain;
 
+import junit.framework.Assert;
 import org.junit.Test;
 import org.sharedhealth.freeshrUpdate.mothers.PatientUpdateMother;
 
+import java.util.Map;
+
+import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -59,5 +63,28 @@ public class PatientDataTest {
         AddressData addressData = new AddressData();
         addressData.setUnionOrUrbanWardId("foo");
         assertTrue(PatientUpdateMother.addressChange(addressData).hasChanges());
+    }
+
+    @Test
+    public void shouldIdentifyChanges() throws Exception {
+        AddressData addressData = new AddressData();
+        addressData.setAddressLine("foo");
+        addressData.setDivisionId("foo");
+        addressData.setDistrictId("foo");
+        addressData.setUpazilaId("foo");
+        addressData.setCityCorporationId("foo");
+        addressData.setUnionOrUrbanWardId("foo");
+        PatientData patientData = PatientUpdateMother.addressChange(addressData);
+        patientData.setConfidential("Yes");
+        assertTrue(patientData.hasChanges());
+        Map<String, Object> changes = patientData.getChanges();
+        assertEquals(7, changes.size());
+    }
+
+    @Test
+    public void shouldIdentifyConfidentialChangesAsBoolean() throws Exception {
+        PatientData patientData = PatientUpdateMother.changeOnlyConfidential("Yes");
+        assertTrue(patientData.hasChanges());
+        Assert.assertTrue((Boolean) patientData.getChanges().get("confidential"));
     }
 }

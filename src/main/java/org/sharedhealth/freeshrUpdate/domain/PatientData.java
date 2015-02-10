@@ -2,7 +2,8 @@ package org.sharedhealth.freeshrUpdate.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.apache.commons.lang3.StringUtils;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Maps;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -51,8 +52,13 @@ public class PatientData {
     }
 
     public boolean hasChanges() {
-        HashMap<String, String> changes = new HashMap<>();
-        changes.put("confidential", confidential);
+        return getChanges().size() > 0;
+    }
+
+    public Map<String, Object> getChanges() {
+        HashMap<String, Object> changes = new HashMap<>();
+        if(null != confidential)
+            changes.put("confidential", "YES".equalsIgnoreCase(confidential));
 
         changes.put("address_line", address.getAddressLine());
         changes.put("division_id", address.getDivisionId());
@@ -61,9 +67,11 @@ public class PatientData {
         changes.put("city_corporation_id", address.getCityCorporationId());
         changes.put("union_urban_ward_id", address.getUnionOrUrbanWardId());
 
-        for (String change : changes.values()) {
-            if(StringUtils.isNotBlank(change)) return true;
-        }
-        return false;
+        return Maps.filterValues(changes, new Predicate<Object>() {
+            @Override
+            public boolean apply(Object input) {
+                return null != input;
+            }
+        });
     }
 }

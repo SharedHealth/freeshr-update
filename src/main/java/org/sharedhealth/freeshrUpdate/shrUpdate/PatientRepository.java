@@ -1,6 +1,7 @@
 package org.sharedhealth.freeshrUpdate.shrUpdate;
 
 import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.Row;
 import org.sharedhealth.freeshrUpdate.domain.PatientUpdate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,20 +31,8 @@ public class PatientRepository {
         this.patientQueryBuilder = patientQueryBuilder;
     }
 
-    private Observable<Boolean> findPatient(final String healthId) {
-        Observable<ResultSet> observable = Observable.from(
-                cqlOperations.queryAsynchronously(patientQueryBuilder.findPatientQuery(healthId))
-        );
-        return observable.flatMap(new Func1<ResultSet, Observable<Boolean>>() {
-            @Override
-            public Observable<Boolean> call(ResultSet rows) {
-                return Observable.just(rows.one().getInt(0) > 0);
-            }
-        }, onError(), onCompletion());
-    }
-
-
     public Observable<Boolean> applyUpdate(final PatientUpdate patientUpdate) {
+        if(!patientUpdate.hasChanges()) return Observable.just(false);
         final String healthId = patientUpdate.getHealthId();
         return findPatient(healthId).flatMap(new Func1<Boolean, Observable<Boolean>>() {
             @Override
@@ -51,19 +40,33 @@ public class PatientRepository {
                 LOG.debug(String.format("Patient %s %s found", healthId, patientExists? "": "not"));
                 return patientExists ? savePatientUpdate(patientUpdate) : Observable.just(false);
             }
-        });
+        }, onError(), onCompletion());
     }
+
+
+    private Observable<Boolean> findPatient(final String healthId) {
+        Observable<ResultSet> observable = Observable.from(
+                cqlOperations.queryAsynchronously(patientQueryBuilder.findPatientQuery(healthId))
+        );
+        return observable.flatMap(new Func1<ResultSet, Observable<Boolean>>() {
+            @Override
+            public Observable<Boolean> call(ResultSet rows) {
+                return Observable.just(rows.one().getLong("count") > 0);
+            }
+        }, onError(), onCompletion()).firstOrDefault(false);
+    }
+
 
     private Observable<Boolean> savePatientUpdate(PatientUpdate patientUpdate) {
         Observable<ResultSet> observable = Observable.from(
-                cqlOperations.executeAsynchronously(patientQueryBuilder.updatePatientQuery(patientUpdate)));
+                cqlOperations.executeAsynchronously(patientQueryBuilder.updatePatientQuery(patientUpdate))).first();
 
         return observable.flatMap(new Func1<ResultSet, Observable<Boolean>>() {
             @Override
             public Observable<Boolean> call(ResultSet rows) {
                 return Observable.just(true);
             }
-        }, onError(), onCompletion());
+        }, onError(), onCompletion()).firstOrDefault(false);
     }
 
 
@@ -71,7 +74,7 @@ public class PatientRepository {
         return new Func0<Observable<? extends Boolean>>() {
             @Override
             public Observable<? extends Boolean> call() {
-                return null;
+                return Observable.just(false);
             }
         };
     }
