@@ -16,6 +16,8 @@ public class PatientData {
     private String surName;
     @JsonProperty("confidential")
     private String confidential;
+    @JsonProperty("gender")
+    private String gender;
     @JsonProperty("present_address")
     private AddressData address = new AddressData();
 
@@ -51,6 +53,14 @@ public class PatientData {
         this.address = present_address;
     }
 
+    public String getGender() {
+        return gender;
+    }
+
+    public void setGender(String gender) {
+        this.gender = gender;
+    }
+
     public boolean hasChanges() {
         return getChanges().size() > 0;
     }
@@ -59,6 +69,7 @@ public class PatientData {
         HashMap<String, Object> changes = new HashMap<>();
         if(null != confidential)
             changes.put("confidential", "YES".equalsIgnoreCase(confidential));
+        changes.put("gender", gender);
 
         changes.put("address_line", address.getAddressLine());
         changes.put("division_id", address.getDivisionId());
@@ -74,4 +85,5 @@ public class PatientData {
             }
         });
     }
+
 }
