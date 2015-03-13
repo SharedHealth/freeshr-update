@@ -1,37 +1,95 @@
-#!/bin/sh
+#!/bin/bash
 #
-# freeshr-update        This shell script takes care of starting and stopping
-#              the freeshr-update system
+# freeshr-update        start/stop/status script
 #
 # chkconfig: - 64 36
 # description: The freeshr-update shared health record system
 # processname: freeshr-update
-# org.sharedhealth.freeshrUpdate.config: /etc/default/freeshr-update
+# config: /etc/default/freeshr-update
 # pidfile: /var/run/freeshr-update/freeshr-update.pid
 ### BEGIN INIT INFO
 # Provides: freeshr-update
 # Required-Start: $local_fs $remote_fs $network $named $syslog $time
 # Required-Stop: $local_fs $remote_fs $network $named $syslog $time
 # Short-Description: start and stop freeshr-update system,
-# Description: freeshr-update system
+# Description: BDSHR system
 ### END INIT INFO
 
+export FREESHR_UPDATE_USER=sharedhealth
+export FREESHR_UPDATE_RUN=/opt/freeshr-update/bin/start.sh
+
+# load configuration
 . /etc/default/freeshr-update
 
-if [[ ! -e /var/run/freeshr-update ]]; then
-    ln -s /opt/freeshr-update/var /var/run/freeshr-update
-fi
+create_dirs() {
+    if [[ ! -e /var/run/freeshr-update ]]; then
+        ln -s /opt/freeshr-update/var /var/run/freeshr-update
+    fi
 
-if [[ ! -e /var/log/freeshr-update ]]; then
-    mkdir /var/log/freeshr-update
-fi
+    if [[ ! -e /var/log/freeshr-update ]]; then
+        mkdir /var/log/freeshr-update
+    fi
+}
+freeshr_update_pid() {
+        echo `ps -fe | grep 'shr.war' | grep -v grep | tr -s " "|cut -d" " -f2`
+}
 
-case "$1" in
-  start)
-    nohup java -DSHR_LOG_LEVEL=$SHR_LOG_LEVEL -jar /opt/freeshr-update/lib/freeshr-update.jar > /var/log/freeshr-update/freeshr-update.log &
-    echo $! > /var/run/freeshr-update/freeshr-update.pid
-    ;;
-  stop)
-    (cat /var/run/freeshr-update/freeshr-update.pid |  xargs -n 1 kill) || (true)
-    ;;
+start(){
+    pid=$(freeshr_update_pid)
+    if [ -n "$pid" ]
+    then
+        echo -e "\e[00;31mService freeshr-update is already running (pid: $pid)\e[00m"
+    else
+        # Start freeshr-update
+        create_dirs
+        echo -e "\e[00;32mStarting freeshr-update\e[00m"
+        if [ `user_exists $FREESHR_UPDATE_USER` = "1" ]
+        then
+                /bin/su $FREESHR_UPDATE_USER -c $FREESHR_UPDATE_RUN
+        else
+                sh $FREESHR_UPDATE_RUN
+        fi
+  fi
+  return 0
+}
+status(){
+          pid=$(freeshr_update_pid)
+          if [ -n "$pid" ]; then echo -e "\e[00;32mService freeshr-update is running with pid: $pid\e[00m"
+          else echo -e "\e[00;31mService freeshr-update is not running\e[00m"
+          fi
+}
+
+stop() {
+	echo -e "\e[00;31mTerminating freeshr-update\e[00m"
+	kill -9 $(freeshr_update_pid)
+}
+user_exists(){
+        if id -u $1 >/dev/null 2>&1; then
+        echo "1"
+        else
+                echo "0"
+        fi
+}
+
+case $1 in
+	start)
+	  start
+	;;
+	stop)
+	  stop
+	;;
+	restart)
+	  stop
+	  start
+	;;
+	status)
+		status
+	;;
+	kill)
+		stop
+	;;
+	*)
+
+	;;
 esac
+exit 0

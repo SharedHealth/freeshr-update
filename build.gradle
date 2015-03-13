@@ -136,6 +136,7 @@ task dist(dependsOn: 'exportProperties', type: Rpm) {
     from("scripts/rpm") {
         fileMode = 0755
         exclude 'freeshr-update'
+        exclude 'start.sh'
         into 'var'
     }
 }
