@@ -10,7 +10,7 @@ public class IdentityToken {
         this.token = token;
     }
 
-    @JsonProperty("token")
+    @JsonProperty("access_token")
     private String token;
 
     @Override

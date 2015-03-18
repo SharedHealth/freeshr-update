@@ -11,6 +11,10 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.sharedhealth.freeshrUpdate.utils.Headers.EMAIL_KEY;
+import static org.sharedhealth.freeshrUpdate.utils.Headers.PASSWORD_KEY;
+import static org.sharedhealth.freeshrUpdate.utils.Headers.getIdpServerHeaders;
+
 @Component
 public class IdentityServiceClient {
     private ShrUpdateConfiguration properties;
@@ -25,11 +29,12 @@ public class IdentityServiceClient {
     public IdentityToken getOrCreateToken() throws IOException {
         IdentityToken token = identityStore.getToken();
         if (token == null) {
-            Identity identity = new Identity(properties.getMciUser(), properties.getMciPassword());
-            Map<String, String> headers = new HashMap<>();
-            headers.put("Content-Type", "application/json");
+            Map<String, String> headers = getIdpServerHeaders(properties);
             headers.put("accept", "application/json");
-            String response = new WebClient().post(getIdentityServerUrl(), identity, headers);
+            Map<String, String> clientCredentials = new HashMap<>();
+            clientCredentials.put(EMAIL_KEY, properties.getIdpClientEmail());
+            clientCredentials.put(PASSWORD_KEY, properties.getIdpClientPassword());
+            String response = new WebClient().post(properties.getIdpServerSigninUrl(), clientCredentials, headers);
             token = readFrom(response, IdentityToken.class);
             identityStore.setToken(token);
         }
@@ -48,7 +53,4 @@ public class IdentityServiceClient {
         identityStore.clearToken();
     }
 
-    private String getIdentityServerUrl() {
-        return properties.getIdentityServerBaseUrl() + "/login";
-    }
 }

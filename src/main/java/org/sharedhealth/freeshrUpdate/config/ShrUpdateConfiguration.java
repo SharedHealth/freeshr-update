@@ -19,12 +19,6 @@ public class ShrUpdateConfiguration {
     @Value("${MCI_PORT}")
     private String mciPort;
 
-    @Value("${MCI_USER}")
-    private String mciUser;
-
-    @Value("${MCI_PASSWORD}")
-    private String mciPassword;
-
     @Value("${MCI_CONTEXT_PATH}")
     private String mciContextPath;
 
@@ -43,8 +37,23 @@ public class ShrUpdateConfiguration {
     @Value("${UPDATE_INTERVAL_SECONDS}")
     private String updateIntervalInSeconds;
 
-    @Value("${IDENTITY_SERVER_BASE_URL}")
-    private String identityServerBaseUrl;
+    @Value("${IDP_SERVER_BASE_URL}")
+    private String idpServerBaseUrl;
+
+    @Value("${IDP_SIGNIN_PATH}")
+    private String idpServerSigninPath;
+
+    @Value("${IDP_CLIENT_ID}")
+    private String idpClientId;
+
+    @Value("${IDP_AUTH_TOKEN}")
+    private String idpClientAuthToken;
+
+    @Value("${IDP_CLIENT_EMAIL}")
+    private String idpClientEmail;
+
+    @Value("${IDP_CLIENT_PASSWORD}")
+    private String idpClientPassword;
 
     @Value("${DATABASE_URL}")
     private String dbUrl;
@@ -65,16 +74,12 @@ public class ShrUpdateConfiguration {
     private String dbChangeLogFile;
 
 
-    public String getIdentityServerBaseUrl() {
-        return identityServerBaseUrl;
+    public String getIdpServerBaseUrl() {
+        return idpServerBaseUrl;
     }
 
-    public String getMciUser() {
-        return mciUser;
-    }
-
-    public String getMciPassword() {
-        return mciPassword;
+    public String getIdpServerSigninUrl() {
+        return idpServerBaseUrl + "/" + idpServerSigninPath;
     }
 
     public String getCassandraKeySpace() {
@@ -123,6 +128,22 @@ public class ShrUpdateConfiguration {
 
     public String getDbChangeLogFile() {
         return dbChangeLogFile;
+    }
+
+    public String getIdpClientAuthToken() {
+        return idpClientAuthToken;
+    }
+
+    public String getIdpClientId() {
+        return idpClientId;
+    }
+
+    public String getIdpClientEmail() {
+        return idpClientEmail;
+    }
+
+    public String getIdpClientPassword() {
+        return idpClientPassword;
     }
 
     @Bean

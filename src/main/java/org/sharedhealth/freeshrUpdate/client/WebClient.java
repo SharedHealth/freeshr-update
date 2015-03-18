@@ -4,17 +4,20 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ResponseHandler;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.message.BasicNameValuePair;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Map;
 
 public class WebClient {
@@ -27,11 +30,10 @@ public class WebClient {
         return execute(request);
     }
 
-    public String post(String url, Object data, Map<String, String> headers) {
+    public String post(String url, Map<String, String> data, Map<String, String> headers) {
         try {
-            String content = new ObjectMapper().writeValueAsString(data);
+            UrlEncodedFormEntity entity = new UrlEncodedFormEntity(getNameValuePairs(data));
             HttpPost request = new HttpPost(URI.create(url));
-            StringEntity entity = new StringEntity(content);
             addHeaders(request, headers);
             request.setEntity(entity);
             return execute(request);
@@ -79,5 +81,13 @@ public class WebClient {
         }
         reader.close();
         return responseString.toString().replace(ZERO_WIDTH_NO_BREAK_SPACE, BLANK_CHARACTER);
+    }
+
+    private ArrayList<BasicNameValuePair> getNameValuePairs(Map<String, String> data) {
+        ArrayList<BasicNameValuePair> valuePairs = new ArrayList<>();
+        for (Map.Entry<String, String> entry : data.entrySet()) {
+            valuePairs.add(new BasicNameValuePair(entry.getKey(), entry.getValue()));
+        }
+        return valuePairs;
     }
 }
