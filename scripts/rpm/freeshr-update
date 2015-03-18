@@ -31,7 +31,7 @@ create_dirs() {
     fi
 }
 freeshr_update_pid() {
-        echo `ps -fe | grep freeshr-update | grep -v grep | tr -s " "|cut -d" " -f2`
+        echo `ps -fe | grep "freeshr-update.jar" | grep -v grep | tr -s " "|cut -d" " -f2`
 }
 
 start(){
