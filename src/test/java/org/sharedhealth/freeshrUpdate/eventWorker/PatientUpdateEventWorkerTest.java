@@ -11,6 +11,7 @@ import org.sharedhealth.freeshrUpdate.domain.AddressData;
 import org.sharedhealth.freeshrUpdate.domain.PatientData;
 import org.sharedhealth.freeshrUpdate.domain.PatientUpdate;
 import org.sharedhealth.freeshrUpdate.shrUpdate.PatientRepository;
+import org.sharedhealth.freeshrUpdate.utils.FileUtil;
 import rx.Observable;
 
 import java.util.Arrays;
@@ -48,29 +49,18 @@ public class PatientUpdateEventWorkerTest {
         ArgumentCaptor<PatientUpdate> captor = ArgumentCaptor.forClass(PatientUpdate.class);
         verify(patientRepository).applyUpdate(captor.capture());
         PatientUpdate patientUpdate = captor.getValue();
-        assertEquals("5960887819567104001", patientUpdate.getHealthId());
-        assertEquals(2015, patientUpdate.getYear());
+        assertEquals("11124262168", patientUpdate.getHealthId());
         PatientData patientData = patientUpdate.getChangeSet();
-        AddressData presentAddress = patientData.getAddress();
-        assertEquals("Test", presentAddress.getAddressLine());
+        AddressData presentAddress = patientData.getAddressChange();
+        assertEquals("new address", presentAddress.getAddressLine());
     }
 
     private List generateAddressChangeContents() {
         Content content = new Content();
         content.setType(ATOMFEED_MEDIA_TYPE);
-        String contents = "<![CDATA[{\"year\":2015,\"eventId\":\"81d534c0-a785-11e4-ad63-6d5f88e0f020\"," +
-                "\"healthId\":\"5960887819567104001\"," +
-                "\"changeSet\":\"{\\\"present_address\\\":{\\\"address_line\\\":\\\"Test\\\"," +
-                "\\\"division_id\\\":\\\"20\\\",\\\"district_id\\\":\\\"19\\\",\\\"upazila_id\\\":\\\"15\\\"," +
-                "\\\"country_code\\\":\\\"050\\\"}}\",\"eventTime\":\"2015-01-29T07:07:37.868Z\"," +
-                "\"eventTimeAsString\":\"2015-01-29T07:07:37.868Z\"," +
-                "\"changeSetMap\":{\"present_address\":{\"address_line\":\"Test\",\"division_id\":\"20\"," +
-                "\"district_id\":\"19\",\"upazila_id\":\"15\",\"country_code\":\"050\"}}}]]>";
-
-
+        String contents = FileUtil.asString("feeds/UpdateFeed.txt");
         content.setValue(contents);
         return Arrays.asList(content);
-
     }
 
     private List generateNameChangeContents() {

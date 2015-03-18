@@ -2,17 +2,26 @@ package org.sharedhealth.freeshrUpdate.domain;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Date;
 import java.util.UUID;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-@JsonAutoDetect
 public class PatientUpdate {
+    @JsonProperty("year")
     private int year;
+
+    @JsonProperty("event_id")
     private UUID eventId;
+
+    @JsonProperty("health_id")
     private String healthId;
+
+    @JsonProperty("change_set")
     private PatientData changeSetMap = new PatientData();
+
+    @JsonProperty("eventTime")
     private Date eventTime;
 
     public int getYear() {

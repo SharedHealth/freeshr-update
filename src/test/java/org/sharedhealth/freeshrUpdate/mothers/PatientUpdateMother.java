@@ -1,6 +1,8 @@
 package org.sharedhealth.freeshrUpdate.mothers;
 
+import org.sharedhealth.freeshrUpdate.domain.AddressChange;
 import org.sharedhealth.freeshrUpdate.domain.AddressData;
+import org.sharedhealth.freeshrUpdate.domain.Change;
 import org.sharedhealth.freeshrUpdate.domain.PatientData;
 import org.sharedhealth.freeshrUpdate.domain.PatientUpdate;
 
@@ -26,7 +28,7 @@ public class PatientUpdateMother {
 
     public static PatientData changeOnlyConfidential(String confidential) {
         PatientData patientData = new PatientData();
-        patientData.setConfidential(confidential);
+        patientData.setConfidentialChange(new Change("old", confidential));
         return patientData;
     }
 
@@ -39,13 +41,13 @@ public class PatientUpdateMother {
 
     public static PatientUpdate patientAddressUpdate(AddressData addressData) {
         PatientData patientData = new PatientData();
-        patientData.setAddress(addressData);
+        patientData.setAddressChange(new AddressChange(new AddressData(), addressData));
         return patientUpdate(UUID.randomUUID().toString(), UUID.randomUUID(), addressChange(addressData));
     }
 
     public static PatientData addressChange(AddressData addressData) {
         PatientData patientData = new PatientData();
-        patientData.setAddress(addressData);
+        patientData.setAddressChange(new AddressChange(new AddressData(), addressData));
         return patientData;
     }
 

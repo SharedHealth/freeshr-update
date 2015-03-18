@@ -75,7 +75,7 @@ public class PatientDataTest {
         addressData.setCityCorporationId("foo");
         addressData.setUnionOrUrbanWardId("foo");
         PatientData patientData = PatientUpdateMother.addressChange(addressData);
-        patientData.setConfidential("Yes");
+        patientData.setConfidentialChange(new Change("old", "Yes"));
         assertTrue(patientData.hasChanges());
         Map<String, Object> changes = patientData.getChanges();
         assertEquals(7, changes.size());

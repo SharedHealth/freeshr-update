@@ -11,54 +11,58 @@ import java.util.Map;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class PatientData {
     @JsonProperty("given_name")
-    private String givenName;
+    private Change givenNameChange = new Change();
+
     @JsonProperty("sur_name")
-    private String surName;
+    private Change surNameChange = new Change();
+
     @JsonProperty("confidential")
-    private String confidential;
+    private Change confidentialChange = new Change();
+
     @JsonProperty("gender")
-    private String gender;
+    private Change genderChange = new Change();
+
     @JsonProperty("present_address")
-    private AddressData address = new AddressData();
+    private AddressChange addressChange = new AddressChange();
 
-    public String getGivenName() {
-        return givenName;
+    public AddressData getAddressChange() {
+        return addressChange.getNewValue();
     }
 
-    public String getSurName() {
-        return surName;
+    public void setGivenNameChange(Change givenNameChange) {
+        this.givenNameChange = givenNameChange;
     }
 
-    public String getConfidential() {
-        return confidential;
+    public void setSurNameChange(Change surNameChange) {
+        this.surNameChange = surNameChange;
     }
 
-    public AddressData getAddress() {
-        return address;
+    public void setConfidentialChange(Change confidentialChange) {
+        this.confidentialChange = confidentialChange;
     }
 
-    public void setGivenName(String givenName) {
-        this.givenName = givenName;
+    public void setAddressChange(AddressChange addressChange) {
+        this.addressChange = addressChange;
     }
 
-    public void setSurName(String surName) {
-        this.surName = surName;
+    public void setGenderChange(Change genderChange) {
+        this.genderChange = genderChange;
     }
 
-    public void setConfidential(String confidential) {
-        this.confidential = confidential;
+    public String getGivenNameChange() {
+        return (String) givenNameChange.getNewValue();
     }
 
-    public void setAddress(AddressData present_address) {
-        this.address = present_address;
+    public String getSurNameChange() {
+        return (String) surNameChange.getNewValue();
     }
 
-    public String getGender() {
-        return gender;
+    public String getConfidentialChange() {
+        return (String) confidentialChange.getNewValue();
     }
 
-    public void setGender(String gender) {
-        this.gender = gender;
+    public String getGenderChange() {
+        return (String) genderChange.getNewValue();
     }
 
     public boolean hasChanges() {
@@ -67,16 +71,16 @@ public class PatientData {
 
     public Map<String, Object> getChanges() {
         HashMap<String, Object> changes = new HashMap<>();
-        if (null != confidential)
-            changes.put("confidential", "YES".equalsIgnoreCase(confidential));
-        changes.put("gender", gender);
+        if (null != getConfidentialChange())
+            changes.put("confidential", "YES".equalsIgnoreCase(getConfidentialChange()));
+        changes.put("gender", getGenderChange());
 
-        changes.put("address_line", address.getAddressLine());
-        changes.put("division_id", address.getDivisionId());
-        changes.put("district_id", address.getDistrictId());
-        changes.put("upazila_id", address.getUpazilaId());
-        changes.put("city_corporation_id", address.getCityCorporationId());
-        changes.put("union_urban_ward_id", address.getUnionOrUrbanWardId());
+        changes.put("address_line", getAddressChange().getAddressLine());
+        changes.put("division_id", getAddressChange().getDivisionId());
+        changes.put("district_id", getAddressChange().getDistrictId());
+        changes.put("upazila_id", getAddressChange().getUpazilaId());
+        changes.put("city_corporation_id", getAddressChange().getCityCorporationId());
+        changes.put("union_urban_ward_id", getAddressChange().getUnionOrUrbanWardId());
 
         return Maps.filterValues(changes, new Predicate<Object>() {
             @Override
