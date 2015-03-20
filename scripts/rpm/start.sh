@@ -1,3 +1,3 @@
 #!/bin/sh
-nohup java -DSHR_LOG_LEVEL=$SHR_LOG_LEVEL -jar /opt/freeshr-update/lib/freeshr-update.jar > /var/log/freeshr-update/freeshr-update.log &
+nohup java -DSHR_LOG_LEVEL=$SHR_LOG_LEVEL -jar /opt/freeshr-update/lib/freeshr-update.jar >  /dev/null 2>&1 &
 echo $! > /var/run/freeshr-update/freeshr-update.pid
