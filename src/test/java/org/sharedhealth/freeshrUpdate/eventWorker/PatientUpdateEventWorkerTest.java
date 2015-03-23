@@ -10,7 +10,8 @@ import org.mockito.Mock;
 import org.sharedhealth.freeshrUpdate.domain.AddressData;
 import org.sharedhealth.freeshrUpdate.domain.PatientData;
 import org.sharedhealth.freeshrUpdate.domain.PatientUpdate;
-import org.sharedhealth.freeshrUpdate.shrUpdate.PatientRepository;
+import org.sharedhealth.freeshrUpdate.repository.EncounterRepository;
+import org.sharedhealth.freeshrUpdate.repository.PatientRepository;
 import org.sharedhealth.freeshrUpdate.utils.FileUtil;
 import rx.Observable;
 
@@ -20,16 +21,18 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 public class PatientUpdateEventWorkerTest {
     private static final String ATOMFEED_MEDIA_TYPE = "application/vnd.atomfeed+xml";
 
     @Mock
-    PatientRepository patientRepository;
+    private PatientRepository patientRepository;
+    @Mock
+    private EncounterRepository encounterRepository;
 
     @Before
     public void setUp() throws Exception {
@@ -42,38 +45,81 @@ public class PatientUpdateEventWorkerTest {
         Entry entry = new Entry();
         entry.setId(UUID.randomUUID().toString());
         entry.setTitle("foo");
-        entry.setContents(generateAddressChangeContents());
+        entry.setContents(genarateChangeContent("feeds/update_feed_with_confidential.txt"));
         entry.setPublished(new Date());
-        new PatientUpdateEventWorker(patientRepository).process(new Event(entry));
+        new PatientUpdateEventWorker(patientRepository, encounterRepository).process(new Event(entry));
 
         ArgumentCaptor<PatientUpdate> captor = ArgumentCaptor.forClass(PatientUpdate.class);
         verify(patientRepository).applyUpdate(captor.capture());
+
         PatientUpdate patientUpdate = captor.getValue();
         assertEquals("11124262168", patientUpdate.getHealthId());
+        assertTrue(patientUpdate.hasConfidentialChange());
         PatientData patientData = patientUpdate.getChangeSet();
         AddressData presentAddress = patientData.getAddressChange();
         assertEquals("new address", presentAddress.getAddressLine());
     }
 
-    private List generateAddressChangeContents() {
-        Content content = new Content();
-        content.setType(ATOMFEED_MEDIA_TYPE);
-        String contents = FileUtil.asString("feeds/UpdateFeed.txt");
-        content.setValue(contents);
-        return Arrays.asList(content);
+    @Test
+    public void shouldUpdateEncounterWhenPatientConfidentialityIsChanged() throws Exception {
+        when(patientRepository.applyUpdate(any(PatientUpdate.class))).thenReturn(Observable.just(true));
+        Entry entry = new Entry();
+        entry.setId(UUID.randomUUID().toString());
+        entry.setTitle("foo");
+        entry.setContents(genarateChangeContent("feeds/update_feed_with_confidential.txt"));
+        entry.setPublished(new Date());
+        new PatientUpdateEventWorker(patientRepository, encounterRepository).process(new Event(entry));
+
+        ArgumentCaptor<PatientUpdate> captor = ArgumentCaptor.forClass(PatientUpdate.class);
+        verify(patientRepository).applyUpdate(captor.capture());
+
+        PatientUpdate patientUpdate = captor.getValue();
+        verify(encounterRepository).applyUpdate(patientUpdate);
+
+        assertEquals("11124262168", patientUpdate.getHealthId());
+        assertTrue(patientUpdate.hasConfidentialChange());
+        PatientData patientData = patientUpdate.getChangeSet();
+        AddressData presentAddress = patientData.getAddressChange();
+        assertEquals("new address", presentAddress.getAddressLine());
     }
 
-    private List generateNameChangeContents() {
+    @Test
+    public void shouldNotUpdateEncounterWhenPatientConfidentialityIsNotChanged() throws Exception {
+        when(patientRepository.applyUpdate(any(PatientUpdate.class))).thenReturn(Observable.just(true));
+        Entry entry = new Entry();
+        entry.setId(UUID.randomUUID().toString());
+        entry.setTitle("foo");
+        entry.setContents(genarateChangeContent("feeds/update_feed_without_confidential.txt"));
+        entry.setPublished(new Date());
+        new PatientUpdateEventWorker(patientRepository, encounterRepository).process(new Event(entry));
+
+        ArgumentCaptor<PatientUpdate> captor = ArgumentCaptor.forClass(PatientUpdate.class);
+        verify(patientRepository).applyUpdate(captor.capture());
+        verify(encounterRepository, never()).applyUpdate(any(PatientUpdate.class));
+    }
+
+    @Test
+    public void shouldNotUpdateEncounterWhenPatientUpdateFails() throws Exception {
+        when(patientRepository.applyUpdate(any(PatientUpdate.class))).thenReturn(Observable.just(false));
+        Entry entry = new Entry();
+        entry.setId(UUID.randomUUID().toString());
+        entry.setTitle("foo");
+        entry.setContents(genarateChangeContent("feeds/update_feed_with_confidential.txt"));
+        entry.setPublished(new Date());
+        new PatientUpdateEventWorker(patientRepository, encounterRepository).process(new Event(entry));
+
+        ArgumentCaptor<PatientUpdate> captor = ArgumentCaptor.forClass(PatientUpdate.class);
+        verify(patientRepository).applyUpdate(captor.capture());
+        verify(encounterRepository, never()).applyUpdate(any(PatientUpdate.class));
+    }
+
+
+    private List genarateChangeContent(String path) {
         Content content = new Content();
         content.setType(ATOMFEED_MEDIA_TYPE);
-        String contents = "<![CDATA[{\"year\":2015,\"eventId\":\"2557dbe0-a798-11e4-ad63-6d5f88e0f020\"," +
-                "\"healthId\":\"5960887819567104001\",\"changeSet\":\"{\\\"given_name\\\":\\\"updated\\\"}\"," +
-                "\"eventTime\":\"2015-01-29T09:21:03.134Z\",\"eventTimeAsString\":\"2015-01-29T09:21:03.134Z\"," +
-                "\"changeSetMap\":{\"given_name\":\"updated\"}}]]>";
-
+        String contents = FileUtil.asString(path);
         content.setValue(contents);
         return Arrays.asList(content);
-
     }
 
 

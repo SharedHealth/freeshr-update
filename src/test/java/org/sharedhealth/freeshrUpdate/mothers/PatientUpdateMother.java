@@ -1,10 +1,6 @@
 package org.sharedhealth.freeshrUpdate.mothers;
 
-import org.sharedhealth.freeshrUpdate.domain.AddressChange;
-import org.sharedhealth.freeshrUpdate.domain.AddressData;
-import org.sharedhealth.freeshrUpdate.domain.Change;
-import org.sharedhealth.freeshrUpdate.domain.PatientData;
-import org.sharedhealth.freeshrUpdate.domain.PatientUpdate;
+import org.sharedhealth.freeshrUpdate.domain.*;
 
 import java.util.UUID;
 
@@ -12,6 +8,10 @@ public class PatientUpdateMother {
 
     public static PatientUpdate confidentialPatient() {
         return patientUpdate(UUID.randomUUID().toString(), UUID.randomUUID(), changeOnlyConfidential("YES"));
+    }
+
+    public static PatientUpdate notConfidentialPatient() {
+        return patientUpdate(UUID.randomUUID().toString(), UUID.randomUUID(), changeOnlyConfidential("NO"));
     }
 
     public static PatientUpdate confidentialPatient(String healthId) {

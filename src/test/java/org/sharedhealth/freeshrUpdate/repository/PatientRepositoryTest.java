@@ -1,4 +1,4 @@
-package org.sharedhealth.freeshrUpdate.shrUpdate;
+package org.sharedhealth.freeshrUpdate.repository;
 
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.ResultSetFuture;
@@ -21,19 +21,19 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 public class PatientRepositoryTest {
     @Mock
-    CqlOperations cqlOperations;
+    private CqlOperations cqlOperations;
 
     @Mock
-    PatientQueryBuilder patientQueryBuilder;
+    private SHRQueryBuilder shrQueryBuilder;
 
     @Mock
-    Row result;
+    private Row result;
 
     @Mock
-    ResultSet resultSet;
+    private ResultSet resultSet;
 
     @Mock
-    ResultSetFuture resultSetFuture;
+    private ResultSetFuture resultSetFuture;
 
     @Before
     public void setUp() throws Exception {
@@ -47,13 +47,13 @@ public class PatientRepositoryTest {
         when(resultSet.one()).thenReturn(result);
         when(resultSetFuture.get()).thenReturn(resultSet);
         Select selectQuery = getSelectQuery(patientUpdate.getHealthId());
-        when(patientQueryBuilder.findPatientQuery(anyString())).thenReturn(selectQuery);
+        when(shrQueryBuilder.findPatientQuery(anyString())).thenReturn(selectQuery);
         when(cqlOperations.queryAsynchronously(selectQuery)).thenReturn(resultSetFuture);
-        PatientRepository patientRepository = new PatientRepository(cqlOperations, patientQueryBuilder);
+        PatientRepository patientRepository = new PatientRepository(cqlOperations, shrQueryBuilder);
         patientRepository.applyUpdate(patientUpdate).toBlocking().first();
 
-        verify(patientQueryBuilder, times(1)).findPatientQuery(patientUpdate.getHealthId());
-        verify(patientQueryBuilder, times(0)).updatePatientQuery(patientUpdate);
+        verify(shrQueryBuilder, times(1)).findPatientQuery(patientUpdate.getHealthId());
+        verify(shrQueryBuilder, times(0)).updatePatientQuery(patientUpdate);
 
         ArgumentCaptor<Select> captor = ArgumentCaptor.forClass(Select.class);
         verify(cqlOperations, times(1)).queryAsynchronously(captor.capture());
@@ -70,19 +70,19 @@ public class PatientRepositoryTest {
         when(resultSet.one()).thenReturn(result);
         when(resultSetFuture.get()).thenReturn(resultSet);
         Select selectQuery = getSelectQuery(patientUpdate.getHealthId());
-        when(patientQueryBuilder.findPatientQuery(anyString())).thenReturn(selectQuery);
+        when(shrQueryBuilder.findPatientQuery(anyString())).thenReturn(selectQuery);
         when(cqlOperations.queryAsynchronously(selectQuery)).thenReturn(resultSetFuture);
 
         Statement updateQuery = getUpdateQuery();
-        when(patientQueryBuilder.updatePatientQuery(patientUpdate)).thenReturn(updateQuery);
+        when(shrQueryBuilder.updatePatientQuery(patientUpdate)).thenReturn(updateQuery);
         when(resultSetFuture.get()).thenReturn(resultSet);
         when(cqlOperations.executeAsynchronously(updateQuery)).thenReturn(resultSetFuture);
 
-        new PatientRepository(cqlOperations, patientQueryBuilder)
+        new PatientRepository(cqlOperations, shrQueryBuilder)
                 .applyUpdate(patientUpdate).toBlocking().first();
 
-        verify(patientQueryBuilder, times(1)).findPatientQuery(patientUpdate.getHealthId());
-        verify(patientQueryBuilder, times(1)).updatePatientQuery(patientUpdate);
+        verify(shrQueryBuilder, times(1)).findPatientQuery(patientUpdate.getHealthId());
+        verify(shrQueryBuilder, times(1)).updatePatientQuery(patientUpdate);
 
         ArgumentCaptor<Statement> captor = ArgumentCaptor.forClass(Statement.class);
         verify(cqlOperations, times(1)).executeAsynchronously(captor.capture());

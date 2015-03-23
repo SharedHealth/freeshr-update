@@ -1,4 +1,4 @@
-package org.sharedhealth.freeshrUpdate.shrUpdate;
+package org.sharedhealth.freeshrUpdate.repository;
 
 import com.datastax.driver.core.ResultSet;
 import org.sharedhealth.freeshrUpdate.domain.PatientUpdate;
@@ -20,14 +20,14 @@ public class PatientRepository {
     private static final Logger LOG = LoggerFactory.getLogger(PatientRepository.class);
 
     @Autowired
-    private PatientQueryBuilder patientQueryBuilder;
+    private SHRQueryBuilder shrQueryBuilder;
 
     public PatientRepository() {
     }
 
-    public PatientRepository(CqlOperations cqlOperations, PatientQueryBuilder patientQueryBuilder) {
+    public PatientRepository(CqlOperations cqlOperations, SHRQueryBuilder shrQueryBuilder) {
         this.cqlOperations = cqlOperations;
-        this.patientQueryBuilder = patientQueryBuilder;
+        this.shrQueryBuilder = shrQueryBuilder;
     }
 
     public Observable<Boolean> applyUpdate(final PatientUpdate patientUpdate) {
@@ -45,7 +45,7 @@ public class PatientRepository {
 
     private Observable<Boolean> findPatient(final String healthId) {
         Observable<ResultSet> observable = Observable.from(
-                cqlOperations.queryAsynchronously(patientQueryBuilder.findPatientQuery(healthId))
+                cqlOperations.queryAsynchronously(shrQueryBuilder.findPatientQuery(healthId))
         );
         return observable.flatMap(new Func1<ResultSet, Observable<Boolean>>() {
             @Override
@@ -58,7 +58,7 @@ public class PatientRepository {
 
     private Observable<Boolean> savePatientUpdate(PatientUpdate patientUpdate) {
         Observable<ResultSet> observable = Observable.from(
-                cqlOperations.executeAsynchronously(patientQueryBuilder.updatePatientQuery(patientUpdate))).first();
+                cqlOperations.executeAsynchronously(shrQueryBuilder.updatePatientQuery(patientUpdate))).first();
 
         return observable.flatMap(new Func1<ResultSet, Observable<Boolean>>() {
             @Override

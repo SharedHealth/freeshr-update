@@ -6,12 +6,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.ict4h.atomfeed.client.domain.Event;
 import org.ict4h.atomfeed.client.service.EventWorker;
 import org.sharedhealth.freeshrUpdate.domain.PatientUpdate;
-import org.sharedhealth.freeshrUpdate.shrUpdate.PatientRepository;
+import org.sharedhealth.freeshrUpdate.repository.EncounterRepository;
+import org.sharedhealth.freeshrUpdate.repository.PatientRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import rx.Observable;
 import rx.functions.Action1;
+import rx.functions.Func0;
+import rx.functions.Func1;
 
 import java.io.IOException;
 
@@ -19,35 +23,77 @@ import java.io.IOException;
 public class PatientUpdateEventWorker implements EventWorker {
     private static final Logger LOG = LoggerFactory.getLogger(PatientUpdateEventWorker.class);
     @Autowired
-    PatientRepository patientRepository;
+    private PatientRepository patientRepository;
+    @Autowired
+    private EncounterRepository encounterRepository;
 
     public PatientUpdateEventWorker() {
     }
 
-    public PatientUpdateEventWorker(PatientRepository patientRepository) {
+    public PatientUpdateEventWorker(PatientRepository patientRepository, EncounterRepository encounterRepository) {
         this.patientRepository = patientRepository;
+        this.encounterRepository = encounterRepository;
     }
 
     @Override
     public void process(Event event) {
         try {
             final PatientUpdate patientUpdate = readFrom(extractContent(event.getContent()), PatientUpdate.class);
-            patientRepository.applyUpdate(patientUpdate).subscribe(new Action1<Boolean>() {
+            Observable<Boolean> savePatientResponse = patientRepository.applyUpdate(patientUpdate);
+            Observable<Boolean> updateEncounterResponse = savePatientResponse.
+                    flatMap(onSuccess(patientUpdate), onError(), onCompleted());
+
+            updateEncounterResponse.subscribe(new Action1<Boolean>() {
                 @Override
                 public void call(Boolean updated) {
-                    LOG.debug(String.format("Patient %s %s updated", patientUpdate.getHealthId(), updated ? "" :
+                    LOG.debug(String.format("Encounters for patient %s %s updated", patientUpdate.getHealthId(), updated ? "" :
                             "not"));
                 }
-            }, new Action1<Throwable>() {
-                @Override
-                public void call(Throwable throwable) {
-                    LOG.error(throwable.getMessage());
-                }
-            });
-
+            }, actionOnError());
         } catch (IOException e) {
             LOG.error(e.getMessage());
         }
+    }
+
+    private Action1<Throwable> actionOnError() {
+        return new Action1<Throwable>() {
+            @Override
+            public void call(Throwable throwable) {
+                LOG.error(throwable.getMessage());
+            }
+        };
+    }
+
+    private Func0<Observable<Boolean>> onCompleted() {
+        return new Func0<Observable<Boolean>>() {
+            @Override
+            public Observable<Boolean> call() {
+                return null;
+            }
+        };
+    }
+
+    private Func1<Throwable, Observable<Boolean>> onError() {
+        return new Func1<Throwable, Observable<Boolean>>() {
+            @Override
+            public Observable<Boolean> call(Throwable throwable) {
+                return null;
+            }
+        };
+    }
+
+    private Func1<Boolean, Observable<Boolean>> onSuccess(final PatientUpdate patientUpdate) {
+        return new Func1<Boolean, Observable<Boolean>>() {
+            @Override
+            public Observable<Boolean> call(Boolean patientUpdated) {
+                LOG.debug(String.format("Patient %s %s updated", patientUpdate.getHealthId(), patientUpdated ? "" :
+                        "not"));
+                if (patientUpdated && patientUpdate.hasConfidentialChange()) {
+                    return encounterRepository.applyUpdate(patientUpdate);
+                }
+                return Observable.just(false);
+            }
+        };
     }
 
 

@@ -4,9 +4,12 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Maps;
+import org.sharedhealth.freeshrUpdate.utils.Confidentiality;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import static org.sharedhealth.freeshrUpdate.utils.KeySpaceUtils.*;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class PatientData {
@@ -69,18 +72,18 @@ public class PatientData {
         return getChanges().size() > 0;
     }
 
-    public Map<String, Object> getChanges() {
-        HashMap<String, Object> changes = new HashMap<>();
+    public Map<String, String> getChanges() {
+        HashMap<String, String> changes = new HashMap<>();
         if (null != getConfidentialChange())
-            changes.put("confidential", "YES".equalsIgnoreCase(getConfidentialChange()));
-        changes.put("gender", getGenderChange());
+            changes.put(CONFIDENTIALITY_COLUMN_NAME, getConfidential());
+        changes.put(GENDER_COLUMN_NAME, getGenderChange());
 
-        changes.put("address_line", getAddressChange().getAddressLine());
-        changes.put("division_id", getAddressChange().getDivisionId());
-        changes.put("district_id", getAddressChange().getDistrictId());
-        changes.put("upazila_id", getAddressChange().getUpazilaId());
-        changes.put("city_corporation_id", getAddressChange().getCityCorporationId());
-        changes.put("union_urban_ward_id", getAddressChange().getUnionOrUrbanWardId());
+        changes.put(ADDRESS_LINE_COLUMN_NAME, getAddressChange().getAddressLine());
+        changes.put(DIVISION_ID_COLUMN_NAME, getAddressChange().getDivisionId());
+        changes.put(DISTRICT_ID_COLUMN_NAME, getAddressChange().getDistrictId());
+        changes.put(UPAZILA_ID_COLUMN_NAME, getAddressChange().getUpazilaId());
+        changes.put(CITY_CORPORATION_ID_COLUMN_NAME, getAddressChange().getCityCorporationId());
+        changes.put(UNION_OR_URBAN_COLUMN_NAME, getAddressChange().getUnionOrUrbanWardId());
 
         return Maps.filterValues(changes, new Predicate<Object>() {
             @Override
@@ -90,4 +93,12 @@ public class PatientData {
         });
     }
 
+    private String getConfidential() {
+        return "YES".equalsIgnoreCase(getConfidentialChange()) ? Confidentiality.VeryRestricted.getLevel() :
+                Confidentiality.Normal.getLevel();
+    }
+
+    public boolean hasConfidentialChange() {
+        return getChanges().containsKey(CONFIDENTIALITY_COLUMN_NAME);
+    }
 }
