@@ -27,6 +27,10 @@ public class ShrUpdateAction extends rx.Subscriber<Long> {
     @Override
     public void onNext(Long aLong) {
         LOG.debug(String.format("starting iteration number: %s", aLong));
-        mciFeedProcessor.pullLatest();
+        try {
+            mciFeedProcessor.pullLatest();
+        } catch (Exception e) {
+            LOG.error(e.getMessage());;
+        }
     }
 }
