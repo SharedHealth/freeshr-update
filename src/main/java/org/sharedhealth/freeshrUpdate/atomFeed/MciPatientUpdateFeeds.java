@@ -25,9 +25,8 @@ public class MciPatientUpdateFeeds extends AllFeeds {
             WireFeedInput input = new WireFeedInput();
             return (Feed) input.build(new StringReader(response));
         } catch (URISyntaxException | IOException | FeedException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
-        return null;
     }
 
 }

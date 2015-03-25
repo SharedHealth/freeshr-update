@@ -29,6 +29,7 @@ public class ShrUpdateAction extends rx.Subscriber<Long> {
         LOG.debug(String.format("starting iteration number: %s", aLong));
         try {
             mciFeedProcessor.pullLatest();
+            mciFeedProcessor.pullFailedEvents();
         } catch (Exception e) {
             LOG.error(e.getMessage());;
         }

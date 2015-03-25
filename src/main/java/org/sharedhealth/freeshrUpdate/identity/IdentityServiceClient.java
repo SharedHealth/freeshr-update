@@ -11,9 +11,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.sharedhealth.freeshrUpdate.utils.Headers.EMAIL_KEY;
-import static org.sharedhealth.freeshrUpdate.utils.Headers.PASSWORD_KEY;
-import static org.sharedhealth.freeshrUpdate.utils.Headers.getIdpServerHeaders;
+import static org.sharedhealth.freeshrUpdate.utils.Headers.*;
 
 @Component
 public class IdentityServiceClient {
@@ -34,8 +32,8 @@ public class IdentityServiceClient {
             Map<String, String> clientCredentials = new HashMap<>();
             clientCredentials.put(EMAIL_KEY, properties.getIdpClientEmail());
             clientCredentials.put(PASSWORD_KEY, properties.getIdpClientPassword());
-            String response = new WebClient().post(properties.getIdpServerSigninUrl(), clientCredentials, headers);
-            token = readFrom(response, IdentityToken.class);
+                String response = new WebClient().post(properties.getIdpServerSigninUrl(), clientCredentials, headers);
+                token = readFrom(response, IdentityToken.class);
             identityStore.setToken(token);
         }
         return token;

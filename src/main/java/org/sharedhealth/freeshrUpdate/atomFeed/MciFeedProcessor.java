@@ -46,6 +46,15 @@ public class MciFeedProcessor {
         atomFeedClient.processEvents();
     }
 
+    public void pullFailedEvents() {
+        AtomFeedProperties atomProperties = new AtomFeedProperties();
+        atomProperties.setMaxFailedEvents(20);
+        AtomFeedClient atomFeedClient = atomFeedClient(this.feedUrl,
+                patientUpdateEventWorker,
+                atomProperties);
+        atomFeedClient.processFailedEvents();
+    }
+
     private AtomFeedClient atomFeedClient(URI feedUri, EventWorker worker, AtomFeedProperties atomProperties) {
         return new AtomFeedClient(
                 new MciPatientUpdateFeeds(mciWebClient),
