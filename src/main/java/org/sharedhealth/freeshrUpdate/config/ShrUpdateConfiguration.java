@@ -37,6 +37,9 @@ public class ShrUpdateConfiguration {
     @Value("${UPDATE_INTERVAL_SECONDS}")
     private String updateIntervalInSeconds;
 
+    @Value("${RETRY_UPDATE_INTERVAL_SECONDS}")
+    private String retryUpdateIntervalInSeconds;
+
     @Value("${IDP_SERVER_BASE_URL}")
     private String idpServerBaseUrl;
 
@@ -100,6 +103,10 @@ public class ShrUpdateConfiguration {
 
     public int getUpdateIntervalInSeconds() {
         return Integer.parseInt(updateIntervalInSeconds);
+    }
+
+    public int getRetryUpdateIntervalInSeconds() {
+        return Integer.parseInt(retryUpdateIntervalInSeconds);
     }
 
     public URI getMciBaseUrl() {

@@ -4,15 +4,15 @@ import org.sharedhealth.freeshrUpdate.atomFeed.MciFeedProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ShrUpdateAction extends rx.Subscriber<Long> {
+public class ShrRetryUpdateAction extends rx.Subscriber<Long> {
 
     private final MciFeedProcessor mciFeedProcessor;
 
-    public ShrUpdateAction(MciFeedProcessor mciFeedProcessor) {
+    public ShrRetryUpdateAction(MciFeedProcessor mciFeedProcessor) {
         this.mciFeedProcessor = mciFeedProcessor;
     }
 
-    private static final Logger LOG = LoggerFactory.getLogger(ShrUpdateAction.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ShrRetryUpdateAction.class);
 
     @Override
     public void onCompleted() {
@@ -28,7 +28,7 @@ public class ShrUpdateAction extends rx.Subscriber<Long> {
     public void onNext(Long aLong) {
         LOG.debug(String.format("starting iteration number: %s", aLong));
         try {
-            mciFeedProcessor.pullLatest();
+            mciFeedProcessor.pullFailedEvents();
         } catch (Exception e) {
             LOG.error(e.getMessage());;
         }

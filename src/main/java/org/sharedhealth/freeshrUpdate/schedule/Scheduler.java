@@ -54,5 +54,11 @@ public class Scheduler {
                 Schedulers.immediate())
                 .startWith(-1L) // to start action immediately
                 .subscribe(new ShrUpdateAction(mciFeedProcessor));
+
+        Observable.interval(config.getRetryUpdateIntervalInSeconds(), TimeUnit.SECONDS,
+                Schedulers.immediate())
+                .startWith(-1L) // to start action immediately
+                .subscribe(new ShrRetryUpdateAction(mciFeedProcessor));
+
     }
 }
