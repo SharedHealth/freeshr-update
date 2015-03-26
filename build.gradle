@@ -150,7 +150,7 @@ task runUpdate(type: JavaExec) {
     Properties properties = new Properties();
     properties.load(new FileInputStream(new File('env/local.properties')))
     main = mainClassName
-    jvmArgs = ['-DSHR_LOG_LEVEL=DEBUG']
+    jvmArgs = ['-DSHR_UPDATE_LOG_LEVEL=DEBUG']
     classpath = sourceSets.main.runtimeClasspath
     environment properties
 }
@@ -159,7 +159,7 @@ task debugUpdate(type: JavaExec) {
     Properties properties = new Properties();
     properties.load(new FileInputStream(new File('env/local.properties')))
     main = mainClassName
-    jvmArgs = ['-DSHR_LOG_LEVEL=DEBUG']
+    jvmArgs = ['-DSHR_UPDATE_LOG_LEVEL=DEBUG']
     classpath = sourceSets.main.runtimeClasspath
     environment properties
     debug = true
