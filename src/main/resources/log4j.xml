@@ -16,12 +16,12 @@
     </appender>
 
     <logger name="org.sharedhealth" additivity="false">
-        <level value="${SHR_LOG_LEVEL}"/>
+        <level value="${SHR_UPDATE_LOG_LEVEL}"/>
         <appender-ref ref="VAR_LOG"/>
     </logger>
 
     <root>
-        <priority value="${SHR_LOG_LEVEL}"/>
+        <priority value="${SHR_UPDATE_LOG_LEVEL}"/>
         <appender-ref ref="VAR_LOG"/>
     </root>
 
