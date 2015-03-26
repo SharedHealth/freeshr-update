@@ -44,7 +44,7 @@ start(){
         # Start freeshr-update
         create_dirs
         echo -e "\e[00;32mStarting freeshr-update\e[00m"
-        if [ `user_exists $FREESHR_UPDATE_USER` = "1" ]  && ["$CUR_USER" != "$FREESHR_UPDATE_USER"] ;
+        if [ `user_exists $FREESHR_UPDATE_USER` = "1" ]  && [ "$CUR_USER" != "$FREESHR_UPDATE_USER" ] ;
         then
                 /bin/su $FREESHR_UPDATE_USER -c $FREESHR_UPDATE_RUN
         else
