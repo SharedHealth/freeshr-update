@@ -52,7 +52,7 @@ public class IdentityServiceClientTest {
         String response = "{\"access_token\" : \"" + identityToken.toString() + "\"}";
 
         when(identityStore.getToken()).thenReturn(null);
-        when(properties.getIdpServerSigninUrl()).thenReturn("http://localhost:9997/signin");
+        when(properties.getIdpServerLoginUrl()).thenReturn("http://localhost:9997/signin");
         when(properties.getIdpClientAuthToken()).thenReturn(clientAuthToken);
         when(properties.getIdpClientId()).thenReturn(clientId);
 

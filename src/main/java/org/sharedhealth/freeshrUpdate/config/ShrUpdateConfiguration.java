@@ -40,11 +40,8 @@ public class ShrUpdateConfiguration {
     @Value("${RETRY_UPDATE_INTERVAL_SECONDS}")
     private String retryUpdateIntervalInSeconds;
 
-    @Value("${IDP_SERVER_BASE_URL}")
-    private String idpServerBaseUrl;
-
-    @Value("${IDP_SIGNIN_PATH}")
-    private String idpServerSigninPath;
+    @Value("${IDP_SERVER_LOGIN_URL}")
+    private String idpServerLoginUrl;
 
     @Value("${IDP_CLIENT_ID}")
     private String idpClientId;
@@ -76,13 +73,8 @@ public class ShrUpdateConfiguration {
     @Value("${DATABASE_CHANGELOG_FILE}")
     private String dbChangeLogFile;
 
-
-    public String getIdpServerBaseUrl() {
-        return idpServerBaseUrl;
-    }
-
-    public String getIdpServerSigninUrl() {
-        return idpServerBaseUrl + "/" + idpServerSigninPath;
+    public String getIdpServerLoginUrl() {
+        return idpServerLoginUrl;
     }
 
     public String getCassandraKeySpace() {

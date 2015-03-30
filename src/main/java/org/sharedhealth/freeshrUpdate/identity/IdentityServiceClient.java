@@ -32,7 +32,7 @@ public class IdentityServiceClient {
             Map<String, String> clientCredentials = new HashMap<>();
             clientCredentials.put(EMAIL_KEY, properties.getIdpClientEmail());
             clientCredentials.put(PASSWORD_KEY, properties.getIdpClientPassword());
-                String response = new WebClient().post(properties.getIdpServerSigninUrl(), clientCredentials, headers);
+                String response = new WebClient().post(properties.getIdpServerLoginUrl(), clientCredentials, headers);
                 token = readFrom(response, IdentityToken.class);
             identityStore.setToken(token);
         }
