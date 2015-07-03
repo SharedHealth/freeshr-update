@@ -10,14 +10,8 @@ import java.net.URI;
 @Configuration
 public class ShrUpdateConfiguration {
 
-    @Value("${MCI_SCHEME}")
-    private String mciScheme;
-
-    @Value("${MCI_HOST}")
-    private String mciHost;
-
-    @Value("${MCI_PORT}")
-    private String mciPort;
+    @Value("${MCI_SERVER_URL}")
+    private String mciServerUrl;
 
     @Value("${MCI_CONTEXT_PATH}")
     private String mciContextPath;
@@ -102,7 +96,7 @@ public class ShrUpdateConfiguration {
     }
 
     public URI getMciBaseUrl() {
-        return URI.create(mciScheme + "://" + mciHost + ":" + mciPort + mciContextPath);
+        return URI.create(mciServerUrl + mciContextPath);
     }
 
     public String getDbUrl() {
