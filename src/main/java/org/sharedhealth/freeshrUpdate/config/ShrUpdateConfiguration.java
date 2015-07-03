@@ -102,7 +102,7 @@ public class ShrUpdateConfiguration {
     }
 
     public URI getMciBaseUrl() {
-        return URI.create(mciScheme + "://" + mciHost + ":" + mciPort + "/" + mciContextPath);
+        return URI.create(mciScheme + "://" + mciHost + ":" + mciPort + mciContextPath);
     }
 
     public String getDbUrl() {
