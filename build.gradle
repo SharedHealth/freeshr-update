@@ -67,6 +67,10 @@ task checkStyle(type: Checkstyle) {
     configFile file("${project.projectDir}/org.sharedhealth.freeshrUpdate.config/checkstyle/checkstyle.xml")
 }
 
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.6'
+}
+
 jar.dependsOn 'checkStyle'
 
 def exportEnvironmentVariablesToXML(defaults) {
