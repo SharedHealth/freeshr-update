@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Date;
+import java.util.Map;
 import java.util.UUID;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -84,12 +85,23 @@ public class PatientUpdate {
         return result;
     }
 
-    public boolean hasChanges() {
-        return getChangeSet().hasChanges();
+    public boolean hasPatientDetailChanges() {
+        return getChangeSet().hasPatientDetailChanges();
     }
 
+    public boolean hasMergeChanges() {
+        return getChangeSet().isPatientMerged();
+    }
 
     public boolean hasConfidentialChange() {
         return getChangeSet().hasConfidentialChange();
     }
-}
+
+    public Map<String, Object> getPatientDetailChanges() {
+        return getChangeSet().getPatientDetailChanges();
+    }
+
+    public Map<String, Object> getPatientMergeChanges() {
+        return getChangeSet().getPatientMergeChanges();
+    }
+    }

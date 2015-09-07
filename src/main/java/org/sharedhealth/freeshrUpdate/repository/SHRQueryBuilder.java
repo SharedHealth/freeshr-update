@@ -5,7 +5,6 @@ import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.datastax.driver.core.querybuilder.Select;
 import com.datastax.driver.core.querybuilder.Update;
 import org.sharedhealth.freeshrUpdate.config.ShrUpdateConfiguration;
-import org.sharedhealth.freeshrUpdate.domain.PatientData;
 import org.sharedhealth.freeshrUpdate.domain.PatientUpdate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -34,9 +33,8 @@ public class SHRQueryBuilder {
                 .where(eq(HEALTH_ID_COLUMN_NAME, healthId)).limit(1);
     }
 
-    public Statement updatePatientQuery(PatientUpdate patientUpdate) {
-        PatientData patientData = patientUpdate.getChangeSet();
-        Map<String, String> changes = patientData.getChanges();
+    public Statement updatePatientQuery(String healthId, Map<String, Object> patientChanges) {
+        Map<String, Object> changes = patientChanges;
 
         Update update = QueryBuilder
                 .update(configuration.getCassandraKeySpace(), PATIENT_TABLE_NAME);
@@ -46,7 +44,7 @@ public class SHRQueryBuilder {
         }
 
         return update
-                .where(eq(HEALTH_ID_COLUMN_NAME, patientUpdate.getHealthId()))
+                .where(eq(HEALTH_ID_COLUMN_NAME, healthId))
                 .enableTracing();
     }
 
@@ -62,7 +60,7 @@ public class SHRQueryBuilder {
     }
 
     public Statement updateEncounterQuery(PatientUpdate patientUpdate, EncounterDetail encountersDetail) {
-        String confidentialChange = patientUpdate.getChangeSet().getChanges().get(CONFIDENTIALITY_COLUMN_NAME);
+        String confidentialChange = (String) patientUpdate.getChangeSet().getPatientDetailChanges().get(CONFIDENTIALITY_COLUMN_NAME);
         Update update = QueryBuilder
                 .update(configuration.getCassandraKeySpace(), ENCOUNTER_TABLE_NAME);
         

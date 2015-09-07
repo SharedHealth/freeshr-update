@@ -12,6 +12,8 @@ import rx.Observable;
 import rx.functions.Func0;
 import rx.functions.Func1;
 
+import java.util.Map;
+
 @Component
 public class PatientRepository {
     @Autowired
@@ -31,17 +33,26 @@ public class PatientRepository {
     }
 
     public Observable<Boolean> applyUpdate(final PatientUpdate patientUpdate) {
-        if (!patientUpdate.hasChanges()) return Observable.just(false);
         final String healthId = patientUpdate.getHealthId();
         return findPatient(healthId).flatMap(new Func1<Boolean, Observable<Boolean>>() {
             @Override
             public Observable<Boolean> call(Boolean patientExists) {
                 LOG.debug(String.format("Patient %s %s found", healthId, patientExists ? "" : "not"));
-                return patientExists ? savePatientUpdate(patientUpdate) : Observable.just(false);
+                return patientExists ? savePatientUpdate(patientUpdate.getHealthId(), patientUpdate.getPatientDetailChanges()) : Observable.just(false);
             }
         }, onError(), onCompletion());
     }
 
+    public Observable<Boolean> merge(final PatientUpdate patientUpdate) {
+        final String healthId = patientUpdate.getHealthId();
+        return findPatient(healthId).flatMap(new Func1<Boolean, Observable<Boolean>>() {
+            @Override
+            public Observable<Boolean> call(Boolean patientExists) {
+                LOG.debug(String.format("Patient %s %s found", healthId, patientExists ? "" : "not"));
+                return patientExists ? savePatientUpdate(patientUpdate.getHealthId(), patientUpdate.getPatientMergeChanges()) : Observable.just(false);
+            }
+        }, onError(), onCompletion());
+    }
 
     private Observable<Boolean> findPatient(final String healthId) {
         Observable<ResultSet> observable = Observable.from(
@@ -56,9 +67,9 @@ public class PatientRepository {
     }
 
 
-    private Observable<Boolean> savePatientUpdate(PatientUpdate patientUpdate) {
+    private Observable<Boolean> savePatientUpdate(String healthId, Map<String, Object> patientChanges) {
         Observable<ResultSet> observable = Observable.from(
-                cqlOperations.executeAsynchronously(shrQueryBuilder.updatePatientQuery(patientUpdate))).first();
+                cqlOperations.executeAsynchronously(shrQueryBuilder.updatePatientQuery(healthId, patientChanges))).first();
 
         return observable.flatMap(new Func1<ResultSet, Observable<Boolean>>() {
             @Override

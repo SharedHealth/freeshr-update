@@ -53,7 +53,7 @@ public class PatientRepositoryTest {
         patientRepository.applyUpdate(patientUpdate).toBlocking().first();
 
         verify(shrQueryBuilder, times(1)).findPatientQuery(patientUpdate.getHealthId());
-        verify(shrQueryBuilder, times(0)).updatePatientQuery(patientUpdate);
+        verify(shrQueryBuilder, times(0)).updatePatientQuery(patientUpdate.getHealthId(), patientUpdate.getPatientDetailChanges());
 
         ArgumentCaptor<Select> captor = ArgumentCaptor.forClass(Select.class);
         verify(cqlOperations, times(1)).queryAsynchronously(captor.capture());
@@ -74,7 +74,7 @@ public class PatientRepositoryTest {
         when(cqlOperations.queryAsynchronously(selectQuery)).thenReturn(resultSetFuture);
 
         Statement updateQuery = getUpdateQuery();
-        when(shrQueryBuilder.updatePatientQuery(patientUpdate)).thenReturn(updateQuery);
+        when(shrQueryBuilder.updatePatientQuery(patientUpdate.getHealthId(), patientUpdate.getPatientDetailChanges())).thenReturn(updateQuery);
         when(resultSetFuture.get()).thenReturn(resultSet);
         when(cqlOperations.executeAsynchronously(updateQuery)).thenReturn(resultSetFuture);
 
@@ -82,7 +82,34 @@ public class PatientRepositoryTest {
                 .applyUpdate(patientUpdate).toBlocking().first();
 
         verify(shrQueryBuilder, times(1)).findPatientQuery(patientUpdate.getHealthId());
-        verify(shrQueryBuilder, times(1)).updatePatientQuery(patientUpdate);
+        verify(shrQueryBuilder, times(1)).updatePatientQuery(patientUpdate.getHealthId(), patientUpdate.getPatientDetailChanges());
+
+        ArgumentCaptor<Statement> captor = ArgumentCaptor.forClass(Statement.class);
+        verify(cqlOperations, times(1)).executeAsynchronously(captor.capture());
+        Statement statement = captor.getValue();
+    }
+
+    @Test
+    public void shouldMergeExistingPatient() throws Exception {
+        PatientUpdate patientUpdate = PatientUpdateMother.confidentialPatient();
+
+        when(result.getLong("count")).thenReturn(1L);
+        when(resultSet.one()).thenReturn(result);
+        when(resultSetFuture.get()).thenReturn(resultSet);
+        Select selectQuery = getSelectQuery(patientUpdate.getHealthId());
+        when(shrQueryBuilder.findPatientQuery(anyString())).thenReturn(selectQuery);
+        when(cqlOperations.queryAsynchronously(selectQuery)).thenReturn(resultSetFuture);
+
+        Statement updateQuery = getUpdateQuery();
+        when(shrQueryBuilder.updatePatientQuery(patientUpdate.getHealthId(), patientUpdate.getPatientMergeChanges())).thenReturn(updateQuery);
+        when(resultSetFuture.get()).thenReturn(resultSet);
+        when(cqlOperations.executeAsynchronously(updateQuery)).thenReturn(resultSetFuture);
+
+        new PatientRepository(cqlOperations, shrQueryBuilder)
+                .merge(patientUpdate).toBlocking().first();
+
+        verify(shrQueryBuilder, times(1)).findPatientQuery(patientUpdate.getHealthId());
+        verify(shrQueryBuilder, times(1)).updatePatientQuery(patientUpdate.getHealthId(), patientUpdate.getPatientMergeChanges());
 
         ArgumentCaptor<Statement> captor = ArgumentCaptor.forClass(Statement.class);
         verify(cqlOperations, times(1)).executeAsynchronously(captor.capture());

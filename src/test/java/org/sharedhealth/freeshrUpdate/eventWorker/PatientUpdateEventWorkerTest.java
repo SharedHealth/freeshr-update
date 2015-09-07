@@ -113,6 +113,22 @@ public class PatientUpdateEventWorkerTest {
         verify(encounterRepository, never()).applyUpdate(any(PatientUpdate.class));
     }
 
+    @Test
+    public void shouldMergeIfPatientUpdateEntryIsForMerge() throws Exception {
+        when(patientRepository.merge(any(PatientUpdate.class))).thenReturn(Observable.just(true));
+        Entry entry = new Entry();
+        entry.setId(UUID.randomUUID().toString());
+        entry.setTitle("foo");
+        entry.setContents(genarateChangeContent("feeds/update_feed_for_merge.txt"));
+        entry.setPublished(new Date());
+        new PatientUpdateEventWorker(patientRepository, encounterRepository).process(new Event(entry));
+
+        ArgumentCaptor<PatientUpdate> captor = ArgumentCaptor.forClass(PatientUpdate.class);
+
+        verify(patientRepository).merge(captor.capture());
+        verify(patientRepository, never()).applyUpdate(any(PatientUpdate.class));
+
+    }
 
     private List genarateChangeContent(String path) {
         Content content = new Content();

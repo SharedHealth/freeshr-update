@@ -17,13 +17,13 @@ public class PatientDataTest {
     @Test
     public void shouldIdentifyUnchanged() throws Exception {
         PatientData patientData = new PatientData();
-        assertFalse(patientData.hasChanges());
+        assertFalse(patientData.hasPatientDetailChanges());
     }
 
     @Test
     public void shouldIdentifyConfidentialChanges() throws Exception {
         PatientData confidentialChange = changeOnlyConfidential("Yes");
-        assertTrue(confidentialChange.hasChanges());
+        assertTrue(confidentialChange.hasPatientDetailChanges());
         assertTrue(confidentialChange.hasConfidentialChange());
     }
 
@@ -33,7 +33,7 @@ public class PatientDataTest {
         addressData.setAddressLine("foo");
         PatientData addressChange = addressChange(addressData);
 
-        assertTrue(addressChange.hasChanges());
+        assertTrue(addressChange.hasPatientDetailChanges());
         assertFalse(addressChange.hasConfidentialChange());
     }
 
@@ -41,35 +41,43 @@ public class PatientDataTest {
     public void shouldIdentifyDivisionIdChanges() throws Exception {
         AddressData addressData = new AddressData();
         addressData.setDivisionId("foo");
-        assertTrue(addressChange(addressData).hasChanges());
+        assertTrue(addressChange(addressData).hasPatientDetailChanges());
     }
 
     @Test
     public void shouldIdentifyDistrictIdChanges() throws Exception {
         AddressData addressData = new AddressData();
         addressData.setDistrictId("foo");
-        assertTrue(addressChange(addressData).hasChanges());
+        assertTrue(addressChange(addressData).hasPatientDetailChanges());
     }
 
     @Test
     public void shouldIdentifyUpazilaIdChanges() throws Exception {
         AddressData addressData = new AddressData();
         addressData.setUpazilaId("foo");
-        assertTrue(addressChange(addressData).hasChanges());
+        assertTrue(addressChange(addressData).hasPatientDetailChanges());
     }
 
     @Test
     public void shouldIdentifyCityCorporationIdChanges() throws Exception {
         AddressData addressData = new AddressData();
         addressData.setCityCorporationId("foo");
-        assertTrue(addressChange(addressData).hasChanges());
+        assertTrue(addressChange(addressData).hasPatientDetailChanges());
     }
 
     @Test
     public void shouldIdentifyUnionOrUrbanWardIdChanges() throws Exception {
         AddressData addressData = new AddressData();
         addressData.setUnionOrUrbanWardId("foo");
-        assertTrue(addressChange(addressData).hasChanges());
+        assertTrue(addressChange(addressData).hasPatientDetailChanges());
+    }
+
+    @Test
+    public void shouldIdentifyPatientMergeChanges() throws Exception {
+        PatientData patientData = new PatientData();
+        patientData.setActive(new Change(true, false));
+        patientData.setMergedWith(new Change("","some hid"));
+        assertTrue(patientData.isPatientMerged());
     }
 
     @Test
@@ -83,22 +91,22 @@ public class PatientDataTest {
         addressData.setUnionOrUrbanWardId("foo");
         PatientData patientData = addressChange(addressData);
         patientData.setConfidentialChange(new Change("old", "Yes"));
-        assertTrue(patientData.hasChanges());
-        Map<String, String> changes = patientData.getChanges();
+        assertTrue(patientData.hasPatientDetailChanges());
+        Map<String, Object> changes = patientData.getPatientDetailChanges();
         assertEquals(7, changes.size());
     }
 
     @Test
     public void shouldIdentifyConfidentialityChangesAsVeryRestricted() throws Exception {
         PatientData patientData = changeOnlyConfidential("Yes");
-        assertTrue(patientData.hasChanges());
-        assertTrue(patientData.getChanges().get(CONFIDENTIALITY_COLUMN_NAME).equals(Confidentiality.VeryRestricted.getLevel()));
+        assertTrue(patientData.hasPatientDetailChanges());
+        assertTrue(patientData.getPatientDetailChanges().get(CONFIDENTIALITY_COLUMN_NAME).equals(Confidentiality.VeryRestricted.getLevel()));
     }
 
     @Test
     public void shouldIdentifyConfidentialityChangesAsNormal() throws Exception {
         PatientData patientData = changeOnlyConfidential("No");
-        assertTrue(patientData.hasChanges());
-        assertTrue(patientData.getChanges().get(CONFIDENTIALITY_COLUMN_NAME).equals(Confidentiality.Normal.getLevel()));
+        assertTrue(patientData.hasPatientDetailChanges());
+        assertTrue(patientData.getPatientDetailChanges().get(CONFIDENTIALITY_COLUMN_NAME).equals(Confidentiality.Normal.getLevel()));
     }
 }

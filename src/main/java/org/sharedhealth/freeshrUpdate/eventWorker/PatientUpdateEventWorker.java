@@ -39,20 +39,38 @@ public class PatientUpdateEventWorker implements EventWorker {
     public void process(Event event) {
         try {
             final PatientUpdate patientUpdate = readFrom(extractContent(event.getContent()), PatientUpdate.class);
-            Observable<Boolean> savePatientResponse = patientRepository.applyUpdate(patientUpdate);
-            Observable<Boolean> updateEncounterResponse = savePatientResponse.
-                    flatMap(onSuccess(patientUpdate), onError(), onCompleted());
-
-            updateEncounterResponse.subscribe(new Action1<Boolean>() {
-                @Override
-                public void call(Boolean updated) {
-                    LOG.debug(String.format("Encounters for patient %s %s updated", patientUpdate.getHealthId(), updated ? "" :
-                            "not"));
-                }
-            }, actionOnError());
+            if(patientUpdate.hasMergeChanges())
+                merge(patientUpdate);
+            else if(patientUpdate.hasPatientDetailChanges())
+                applyUpdate(patientUpdate);
         } catch (IOException e) {
             LOG.error(e.getMessage());
         }
+    }
+
+    private void merge(PatientUpdate patientUpdate) {
+        Observable<Boolean> savePatientResponse = patientRepository.merge(patientUpdate);
+        savePatientResponse.subscribe(new Action1<Boolean>() {
+            @Override
+            public void call(Boolean updated) {
+                LOG.debug(String.format("Patient is %s updated", updated ? "": "not" ));
+            }
+        }, actionOnError());
+
+    }
+
+    private void applyUpdate(final PatientUpdate patientUpdate) {
+        Observable<Boolean> savePatientResponse = patientRepository.applyUpdate(patientUpdate);
+        Observable<Boolean> updateEncounterResponse = savePatientResponse.
+                flatMap(onSuccess(patientUpdate), onError(), onCompleted());
+
+        updateEncounterResponse.subscribe(new Action1<Boolean>() {
+            @Override
+            public void call(Boolean updated) {
+                LOG.debug(String.format("Encounters for patient %s %s updated", patientUpdate.getHealthId(), updated ? "" :
+                        "not"));
+            }
+        }, actionOnError());
     }
 
     private Action1<Throwable> actionOnError() {

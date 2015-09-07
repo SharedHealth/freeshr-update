@@ -13,11 +13,6 @@ import static org.sharedhealth.freeshrUpdate.utils.KeySpaceUtils.*;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class PatientData {
-    @JsonProperty("given_name")
-    private Change givenNameChange = new Change();
-
-    @JsonProperty("sur_name")
-    private Change surNameChange = new Change();
 
     @JsonProperty("confidential")
     private Change confidentialChange = new Change();
@@ -25,19 +20,17 @@ public class PatientData {
     @JsonProperty("gender")
     private Change genderChange = new Change();
 
+    @JsonProperty("active")
+    private Change active = new Change();
+
+    @JsonProperty("merged_with")
+    private Change mergedWith = new Change();
+
     @JsonProperty("present_address")
     private AddressChange addressChange = new AddressChange();
 
     public AddressData getAddressChange() {
         return addressChange.getNewValue();
-    }
-
-    public void setGivenNameChange(Change givenNameChange) {
-        this.givenNameChange = givenNameChange;
-    }
-
-    public void setSurNameChange(Change surNameChange) {
-        this.surNameChange = surNameChange;
     }
 
     public void setConfidentialChange(Change confidentialChange) {
@@ -52,14 +45,6 @@ public class PatientData {
         this.genderChange = genderChange;
     }
 
-    public String getGivenNameChange() {
-        return (String) givenNameChange.getNewValue();
-    }
-
-    public String getSurNameChange() {
-        return (String) surNameChange.getNewValue();
-    }
-
     public String getConfidentialChange() {
         return (String) confidentialChange.getNewValue();
     }
@@ -68,12 +53,45 @@ public class PatientData {
         return (String) genderChange.getNewValue();
     }
 
-    public boolean hasChanges() {
-        return getChanges().size() > 0;
+    public Boolean getActive() {
+        return (Boolean)active.getNewValue();
     }
 
-    public Map<String, String> getChanges() {
-        HashMap<String, String> changes = new HashMap<>();
+    public void setActive(Change active) {
+        this.active = active;
+    }
+
+    public String getMergedWith() {
+        return (String)mergedWith.getNewValue();
+    }
+
+    public void setMergedWith(Change mergedWith) {
+        this.mergedWith = mergedWith;
+    }
+
+    public boolean hasPatientDetailChanges() {
+        return getPatientDetailChanges().size() > 0;
+    }
+    
+    public boolean isPatientMerged(){
+        return getPatientMergeChanges().size() > 0 && !getActive() && getMergedWith()!=null;
+    }
+
+    public Map<String, Object> getPatientMergeChanges() {
+        HashMap<String, Object> changes = new HashMap<>();
+        changes.put(ACTIVE_COLUMN_NAME, getActive());
+        changes.put(MERGED_WITH_COLUMN_NAME, getMergedWith());
+
+        return Maps.filterValues(changes, new Predicate<Object>() {
+            @Override
+            public boolean apply(Object input) {
+                return null != input;
+            }
+        });
+    }
+
+    public Map<String, Object> getPatientDetailChanges() {
+        HashMap<String, Object> changes = new HashMap<>();
         if (null != getConfidentialChange())
             changes.put(CONFIDENTIALITY_COLUMN_NAME, getConfidential());
         changes.put(GENDER_COLUMN_NAME, getGenderChange());
@@ -99,6 +117,6 @@ public class PatientData {
     }
 
     public boolean hasConfidentialChange() {
-        return getChanges().containsKey(CONFIDENTIALITY_COLUMN_NAME);
+        return getPatientDetailChanges().containsKey(CONFIDENTIALITY_COLUMN_NAME);
     }
 }

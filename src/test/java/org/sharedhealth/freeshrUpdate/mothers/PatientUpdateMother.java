@@ -18,12 +18,18 @@ public class PatientUpdateMother {
         return patientUpdate(healthId, UUID.randomUUID(), changeOnlyConfidential("YES"));
     }
 
-    private static PatientUpdate patientUpdate(String healthId, UUID eventId, PatientData patientData) {
-        PatientUpdate patientUpdate = new PatientUpdate();
-        patientUpdate.setHealthId(healthId);
-        patientUpdate.setEventId(eventId);
-        patientUpdate.setChangeSetMap(patientData);
-        return patientUpdate;
+    public static PatientUpdate addressLineUpdated(String addressLine) {
+        AddressData addressData = new AddressData();
+        addressData.setAddressLine(addressLine);
+        return patientUpdate(UUID.randomUUID().toString(), UUID.randomUUID(), addressChange(addressData));
+    }
+
+    public static PatientUpdate mergedWith(String healthId){
+        return patientUpdate(UUID.randomUUID().toString(), UUID.randomUUID(), mergeChange(healthId));
+    }
+
+    public static PatientUpdate patientAddressUpdate(AddressData addressData) {
+        return patientUpdate(UUID.randomUUID().toString(), UUID.randomUUID(), addressChange(addressData));
     }
 
     public static PatientData changeOnlyConfidential(String confidential) {
@@ -32,24 +38,25 @@ public class PatientUpdateMother {
         return patientData;
     }
 
-    public static PatientUpdate addressLineUpdated(String addressLine) {
-        AddressData addressData = new AddressData();
-        addressData.setAddressLine(addressLine);
-        return patientUpdate(UUID.randomUUID().toString(), UUID.randomUUID(), addressChange(addressData));
-    }
-
-
-    public static PatientUpdate patientAddressUpdate(AddressData addressData) {
-        PatientData patientData = new PatientData();
-        patientData.setAddressChange(new AddressChange(new AddressData(), addressData));
-        return patientUpdate(UUID.randomUUID().toString(), UUID.randomUUID(), addressChange(addressData));
-    }
-
     public static PatientData addressChange(AddressData addressData) {
         PatientData patientData = new PatientData();
         patientData.setAddressChange(new AddressChange(new AddressData(), addressData));
         return patientData;
     }
 
+    public static PatientData mergeChange(String mergedWith){
+        PatientData patientData = new PatientData();
+        patientData.setMergedWith(new Change("",mergedWith));
+        patientData.setActive(new Change(true, false));
+        return patientData;
+    }
+
+    private static PatientUpdate patientUpdate(String healthId, UUID eventId, PatientData patientData) {
+        PatientUpdate patientUpdate = new PatientUpdate();
+        patientUpdate.setHealthId(healthId);
+        patientUpdate.setEventId(eventId);
+        patientUpdate.setChangeSetMap(patientData);
+        return patientUpdate;
+    }
 
 }

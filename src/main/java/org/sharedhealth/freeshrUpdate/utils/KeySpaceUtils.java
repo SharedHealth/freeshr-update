@@ -8,6 +8,8 @@ public class KeySpaceUtils {
     public static final String HEALTH_ID_COLUMN_NAME = "health_id";
     public static final String CONFIDENTIALITY_COLUMN_NAME = "confidentiality";
     public static final String GENDER_COLUMN_NAME = "gender";
+    public static final String ACTIVE_COLUMN_NAME = "active";
+    public static final String MERGED_WITH_COLUMN_NAME = "merged_with";
     public static final String ADDRESS_LINE_COLUMN_NAME = "address_line";
     public static final String DIVISION_ID_COLUMN_NAME = "division_id";
     public static final String DISTRICT_ID_COLUMN_NAME = "district_id";
