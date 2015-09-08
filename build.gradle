@@ -39,6 +39,7 @@ ext.libraries = [
         atomfeed_client      : "org.ict4h:atomfeed-client:1.2",
         atomfeed_commons     : "org.ict4h:atomfeed-commons:1.2",
         rome                 : "rome:rome:1.0",
+        time_uuid            : "com.eaio.uuid:uuid:3.2",
         apache_httpclient    : "org.apache.httpcomponents:httpclient:4.3.5",
         apache_commons_codec : "commons-codec:commons-codec:1.9",
         apache_commons_dbcp  : "commons-dbcp:commons-dbcp:1.4",

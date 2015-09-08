@@ -104,7 +104,7 @@ public class EncounterRepository {
         };
     }
 
-    private Observable<List<String>> getEncounterIdsForPatient(final String healthId) {
+    public Observable<List<String>> getEncounterIdsForPatient(final String healthId) {
         Statement encounterIdsQuery = shrQueryBuilder.findEncounterIdsQuery(healthId);
         Observable<ResultSet> observable = Observable.from(cqlOperations.queryAsynchronously(encounterIdsQuery.toString()));
         return observable.flatMap(new Func1<ResultSet, Observable<List<String>>>() {
