@@ -34,6 +34,9 @@ public class ShrUpdateConfiguration {
     @Value("${CASSANDRA_TIMEOUT}")
     private int cassandraTimeout;
 
+    @Value("${FHIR_DOCUMENT_SCHEMA_VERSION}")
+    private String fhirDocumentSchemaVersion;
+
     @Value("${UPDATE_INTERVAL_SECONDS}")
     private String updateIntervalInSeconds;
 
@@ -151,6 +154,10 @@ public class ShrUpdateConfiguration {
 
     public String getIdpClientPassword() {
         return idpClientPassword;
+    }
+
+    public String getFhirDocumentSchemaVersion() {
+        return fhirDocumentSchemaVersion;
     }
 
     @Bean

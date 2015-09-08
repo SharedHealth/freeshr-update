@@ -48,7 +48,7 @@ public class PatientUpdateEventWorker implements EventWorker {
         }
     }
 
-    private void merge(PatientUpdate patientUpdate) {
+    private void merge(final PatientUpdate patientUpdate) {
         Observable<Boolean> savePatientResponse = patientRepository.merge(patientUpdate);
         savePatientResponse.subscribe(new Action1<Boolean>() {
             @Override

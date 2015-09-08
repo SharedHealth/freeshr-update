@@ -152,7 +152,7 @@ public class SHRQueryBuilderTest {
     public void shouldCreateSelectAllEncountersQueryByEncounterIds() throws Exception {
         when(configuration.getCassandraKeySpace()).thenReturn("keyspace");
         List<String> encounterIds = asList("123", "234");
-        String encountersQuery = new SHRQueryBuilder(configuration).findEncountersByEncounterIdsQuery(encounterIds).toString();
+        String encountersQuery = new SHRQueryBuilder(configuration).findEncounterDetailsByEncounterIdsQuery(encounterIds).toString();
 
         String query = String.format("SELECT %s,%s FROM keyspace.%s WHERE %s IN ('123','234');", ENCOUNTER_ID_COLUMN_NAME,
                 RECEIVED_DATE_COLUMN_NAME, ENCOUNTER_TABLE_NAME, ENCOUNTER_ID_COLUMN_NAME);

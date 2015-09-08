@@ -3,6 +3,8 @@ package org.sharedhealth.freeshrUpdate.repository;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Statement;
+import org.sharedhealth.freeshrUpdate.domain.EncounterBundle;
+import org.sharedhealth.freeshrUpdate.domain.EncounterContent;
 import org.sharedhealth.freeshrUpdate.domain.PatientUpdate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,8 +21,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import static org.sharedhealth.freeshrUpdate.utils.KeySpaceUtils.ENCOUNTER_ID_COLUMN_NAME;
-import static org.sharedhealth.freeshrUpdate.utils.KeySpaceUtils.RECEIVED_DATE_COLUMN_NAME;
+import static org.sharedhealth.freeshrUpdate.utils.KeySpaceUtils.*;
 
 @Component
 public class EncounterRepository {
@@ -63,11 +64,52 @@ public class EncounterRepository {
         }, onError(), onCompleted());
     }
 
+    public Observable<EncounterBundle> getEncounterBundles(String healthId){
+        Observable<List<String>> encounterIdsForPatient = getEncounterIdsForPatient(healthId);
+        return encounterIdsForPatient.flatMap(new Func1<List<String>, Observable<EncounterBundle>>() {
+            @Override
+            public Observable<EncounterBundle> call(List<String> encounterIds) {
+                Statement encountersByEncounterIdsQuery = shrQueryBuilder.findEncounterBundlesByEncounterIdsQuery(encounterIds);
+                Observable<ResultSet> observable = Observable.from(cqlOperations.queryAsynchronously(encountersByEncounterIdsQuery.toString()));
+                return observable.flatMap(new Func1<ResultSet, Observable<EncounterBundle>>() {
+                    @Override
+                    public Observable<EncounterBundle> call(ResultSet rows) {
+                        List<EncounterBundle> encountersBundles = new ArrayList<>();
+                        for (Row row : rows.all()) {
+                            String encounterId = row.getString(ENCOUNTER_ID_COLUMN_NAME);
+                            String healthId = row.getString(HEALTH_ID_COLUMN_NAME);
+                            String content = row.getString(shrQueryBuilder.getEncounterContentColumnName());
+
+                            encountersBundles.add(new EncounterBundle(encounterId, healthId, new EncounterContent(content)));
+                        }
+                        return Observable.from(encountersBundles);
+                    }
+                });
+            }
+        });
+    }
+
+    public Observable<List<String>> getEncounterIdsForPatient(final String healthId) {
+        Statement encounterIdsQuery = shrQueryBuilder.findEncounterIdsQuery(healthId);
+        Observable<ResultSet> observable = Observable.from(cqlOperations.queryAsynchronously(encounterIdsQuery.toString()));
+        return observable.flatMap(new Func1<ResultSet, Observable<List<String>>>() {
+            @Override
+            public Observable<List<String>> call(ResultSet rows) {
+                LOG.debug("Fetching All Encounters for patient %s", healthId);
+                List<String> encounterIds = new ArrayList<>();
+                for (Row row : rows.all()) {
+                    encounterIds.add(row.getString(ENCOUNTER_ID_COLUMN_NAME));
+                }
+                return Observable.just(encounterIds);
+            }
+        });
+    }
+
     private Func1<List<String>, Observable<List<EncounterDetail>>> getEncounterDetails() {
         return new Func1<List<String>, Observable<List<EncounterDetail>>>() {
             @Override
             public Observable<List<EncounterDetail>> call(List<String> encounterIds) {
-                Statement encountersByEncounterIdsQuery = shrQueryBuilder.findEncountersByEncounterIdsQuery(encounterIds);
+                Statement encountersByEncounterIdsQuery = shrQueryBuilder.findEncounterDetailsByEncounterIdsQuery(encounterIds);
                 Observable<ResultSet> observable = Observable.from(cqlOperations.queryAsynchronously(encountersByEncounterIdsQuery.toString()));
                 return observable.flatMap(new Func1<ResultSet, Observable<List<EncounterDetail>>>() {
                     @Override
@@ -103,21 +145,4 @@ public class EncounterRepository {
             }
         };
     }
-
-    public Observable<List<String>> getEncounterIdsForPatient(final String healthId) {
-        Statement encounterIdsQuery = shrQueryBuilder.findEncounterIdsQuery(healthId);
-        Observable<ResultSet> observable = Observable.from(cqlOperations.queryAsynchronously(encounterIdsQuery.toString()));
-        return observable.flatMap(new Func1<ResultSet, Observable<List<String>>>() {
-            @Override
-            public Observable<List<String>> call(ResultSet rows) {
-                LOG.debug("Fetching All Encounters for patient %s", healthId);
-                List<String> encounterIds = new ArrayList<>();
-                for (Row row : rows.all()) {
-                    encounterIds.add(row.getString(ENCOUNTER_ID_COLUMN_NAME));
-                }
-                return Observable.just(encounterIds);
-            }
-        });
-    }
-
 }

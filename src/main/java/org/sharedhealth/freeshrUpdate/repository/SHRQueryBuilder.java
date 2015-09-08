@@ -54,9 +54,18 @@ public class SHRQueryBuilder {
                 .where(eq(HEALTH_ID_COLUMN_NAME, healthId));
     }
 
-    public Statement findEncountersByEncounterIdsQuery(List<String> encounterIds) {
+    public Statement findEncounterDetailsByEncounterIdsQuery(List<String> encounterIds) {
         return QueryBuilder.select(ENCOUNTER_ID_COLUMN_NAME, RECEIVED_DATE_COLUMN_NAME).from(configuration.getCassandraKeySpace(), ENCOUNTER_TABLE_NAME)
                 .where(in(ENCOUNTER_ID_COLUMN_NAME, encounterIds.toArray()));
+    }
+
+    public Statement findEncounterBundlesByEncounterIdsQuery(List<String> encounterIds) {
+        return QueryBuilder.select(ENCOUNTER_ID_COLUMN_NAME,getEncounterContentColumnName(),HEALTH_ID_COLUMN_NAME ).from(configuration.getCassandraKeySpace(), ENCOUNTER_TABLE_NAME)
+                .where(in(ENCOUNTER_ID_COLUMN_NAME, encounterIds.toArray()));
+    }
+
+    public String getEncounterContentColumnName(){
+        return String.format("%s%s", ENCOUNTER_CONTENT_COLUMN_PREFIX,configuration.getFhirDocumentSchemaVersion());
     }
 
     public Statement updateEncounterQuery(PatientUpdate patientUpdate, EncounterDetail encountersDetail) {

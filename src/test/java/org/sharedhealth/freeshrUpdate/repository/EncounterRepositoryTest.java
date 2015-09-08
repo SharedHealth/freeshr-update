@@ -70,14 +70,14 @@ public class EncounterRepositoryTest {
         when(cqlOperations.executeAsynchronously(encounterUpdateQuery)).thenReturn(resultSetFuture);
 
         when(shrQueryBuilder.findEncounterIdsQuery(healthId)).thenReturn(encounterIdsQuery);
-        when(shrQueryBuilder.findEncountersByEncounterIdsQuery(encounterIds)).thenReturn(encountersQuery);
+        when(shrQueryBuilder.findEncounterDetailsByEncounterIdsQuery(encounterIds)).thenReturn(encountersQuery);
         when(shrQueryBuilder.updateEncounterQuery(Matchers.eq(patientUpdate), any(EncounterDetail.class))).thenReturn(encounterUpdateQuery);
 
         encounterRepository.applyUpdate(patientUpdate).toBlocking().first();
 
         verify(shrQueryBuilder, times(1)).findEncounterIdsQuery(healthId);
         verify(cqlOperations, times(1)).queryAsynchronously(encounterIdsQuery.toString());
-        verify(shrQueryBuilder, times(1)).findEncountersByEncounterIdsQuery(encounterIds);
+        verify(shrQueryBuilder, times(1)).findEncounterDetailsByEncounterIdsQuery(encounterIds);
         verify(cqlOperations, times(1)).queryAsynchronously(encountersQuery.toString());
 
         ArgumentCaptor<EncounterDetail> captor = ArgumentCaptor.forClass(EncounterDetail.class);
