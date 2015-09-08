@@ -26,3 +26,6 @@ nohup.out
 
 #zip files
 *.zip
+
+#db files
+*.db
