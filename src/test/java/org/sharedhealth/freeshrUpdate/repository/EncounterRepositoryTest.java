@@ -60,8 +60,8 @@ public class EncounterRepositoryTest {
 
         when(rowOne.getString(ENCOUNTER_ID_COLUMN_NAME)).thenReturn(encounterId1);
         when(rowTwo.getString(ENCOUNTER_ID_COLUMN_NAME)).thenReturn(encounterId2);
-        when(rowOne.getString(RECEIVED_DATE_COLUMN_NAME)).thenReturn("date1");
-        when(rowTwo.getString(RECEIVED_DATE_COLUMN_NAME)).thenReturn("date2");
+        when(rowOne.getString(RECEIVED_AT_COLUMN_NAME)).thenReturn("date1");
+        when(rowTwo.getString(RECEIVED_AT_COLUMN_NAME)).thenReturn("date2");
         when(resultSet.all()).thenReturn(rows);
         when(resultSetFuture.get()).thenReturn(resultSet);
 
@@ -91,7 +91,7 @@ public class EncounterRepositoryTest {
 
     private Statement getEncounterUpdateQuery() {
         return QueryBuilder.update("keyspaceName", "tableName").with(set(CONFIDENTIALITY_COLUMN_NAME, "V"))
-                .where(eq(ENCOUNTER_ID_COLUMN_NAME, "123")).and(eq(RECEIVED_DATE_COLUMN_NAME, "date"));
+                .where(eq(ENCOUNTER_ID_COLUMN_NAME, "123")).and(eq(RECEIVED_AT_COLUMN_NAME, "date"));
     }
 
     private Statement getEncountersQuery(List<String> encounterIds) {

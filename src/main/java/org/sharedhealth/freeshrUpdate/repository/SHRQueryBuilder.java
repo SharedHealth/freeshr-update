@@ -5,7 +5,9 @@ import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.datastax.driver.core.querybuilder.Select;
 import com.datastax.driver.core.querybuilder.Update;
 import org.sharedhealth.freeshrUpdate.config.ShrUpdateConfiguration;
+import org.sharedhealth.freeshrUpdate.domain.EncounterBundle;
 import org.sharedhealth.freeshrUpdate.domain.PatientUpdate;
+import org.sharedhealth.freeshrUpdate.utils.TimeUuidUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -48,6 +50,17 @@ public class SHRQueryBuilder {
                 .enableTracing();
     }
 
+    public Update updateEncounterOnMergeStatement(EncounterBundle encounterBundle){
+        Update updateEncounter = QueryBuilder.update(configuration.getCassandraKeySpace(), ENCOUNTER_TABLE_NAME);
+        updateEncounter.with(set(getEncounterContentColumnName(), encounterBundle.getEncounterContent()))
+                        .and(set(HEALTH_ID_COLUMN_NAME, encounterBundle.getHealthId()))
+                        .where(eq(ENCOUNTER_ID_COLUMN_NAME, encounterBundle.getEncounterId()))
+                        .and(eq(RECEIVED_AT_COLUMN_NAME, TimeUuidUtil.uuidForDate(encounterBundle.getReceivedAt())));
+
+        return updateEncounter;
+
+    }
+
     public Statement findEncounterIdsQuery(String healthId) {
         return QueryBuilder.select(ENCOUNTER_ID_COLUMN_NAME)
                 .from(configuration.getCassandraKeySpace(), ENCOUNTER_BY_PATIENT_TABLE_NAME)
@@ -55,12 +68,12 @@ public class SHRQueryBuilder {
     }
 
     public Statement findEncounterDetailsByEncounterIdsQuery(List<String> encounterIds) {
-        return QueryBuilder.select(ENCOUNTER_ID_COLUMN_NAME, RECEIVED_DATE_COLUMN_NAME).from(configuration.getCassandraKeySpace(), ENCOUNTER_TABLE_NAME)
+        return QueryBuilder.select(ENCOUNTER_ID_COLUMN_NAME, RECEIVED_AT_COLUMN_NAME).from(configuration.getCassandraKeySpace(), ENCOUNTER_TABLE_NAME)
                 .where(in(ENCOUNTER_ID_COLUMN_NAME, encounterIds.toArray()));
     }
 
     public Statement findEncounterBundlesByEncounterIdsQuery(List<String> encounterIds) {
-        return QueryBuilder.select(ENCOUNTER_ID_COLUMN_NAME,getEncounterContentColumnName(),HEALTH_ID_COLUMN_NAME ).from(configuration.getCassandraKeySpace(), ENCOUNTER_TABLE_NAME)
+        return QueryBuilder.select(ENCOUNTER_ID_COLUMN_NAME,getEncounterContentColumnName(),HEALTH_ID_COLUMN_NAME, RECEIVED_AT_COLUMN_NAME).from(configuration.getCassandraKeySpace(), ENCOUNTER_TABLE_NAME)
                 .where(in(ENCOUNTER_ID_COLUMN_NAME, encounterIds.toArray()));
     }
 
@@ -76,6 +89,6 @@ public class SHRQueryBuilder {
         update.with(set(PATIENT_CONFIDENTIALITY_COLUMN_NAME, confidentialChange));
         
         return update.where(eq(ENCOUNTER_ID_COLUMN_NAME, encountersDetail.getEncounterId())).
-                and(eq(RECEIVED_DATE_COLUMN_NAME, encountersDetail.getReceivedDate()));
+                and(eq(RECEIVED_AT_COLUMN_NAME, encountersDetail.getReceivedDate()));
     }
 }

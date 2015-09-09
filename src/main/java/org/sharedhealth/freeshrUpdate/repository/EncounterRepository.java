@@ -3,9 +3,12 @@ package org.sharedhealth.freeshrUpdate.repository;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Statement;
+import com.datastax.driver.core.querybuilder.Batch;
+import com.datastax.driver.core.querybuilder.QueryBuilder;
+import com.datastax.driver.core.querybuilder.Update;
 import org.sharedhealth.freeshrUpdate.domain.EncounterBundle;
-import org.sharedhealth.freeshrUpdate.domain.EncounterContent;
 import org.sharedhealth.freeshrUpdate.domain.PatientUpdate;
+import org.sharedhealth.freeshrUpdate.utils.TimeUuidUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,11 +19,14 @@ import rx.Observable;
 import rx.functions.Func0;
 import rx.functions.Func1;
 import rx.functions.FuncN;
+import rx.schedulers.Schedulers;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import static org.sharedhealth.freeshrUpdate.repository.RxMaps.completeResponds;
+import static org.sharedhealth.freeshrUpdate.repository.RxMaps.respondOnNext;
 import static org.sharedhealth.freeshrUpdate.utils.KeySpaceUtils.*;
 
 @Component
@@ -79,14 +85,26 @@ public class EncounterRepository {
                             String encounterId = row.getString(ENCOUNTER_ID_COLUMN_NAME);
                             String healthId = row.getString(HEALTH_ID_COLUMN_NAME);
                             String content = row.getString(shrQueryBuilder.getEncounterContentColumnName());
+                            Date receivedAt = TimeUuidUtil.getDateFromUUID(row.getUUID(RECEIVED_AT_COLUMN_NAME));
 
-                            encountersBundles.add(new EncounterBundle(encounterId, healthId, new EncounterContent(content)));
+                            encountersBundles.add(new EncounterBundle(encounterId, healthId, content, receivedAt));
                         }
                         return Observable.from(encountersBundles);
                     }
                 });
             }
         });
+    }
+
+    public Observable<Boolean> associateEncounterBundleTo(EncounterBundle encounterBundle, String healthIdToMergeWith){
+        encounterBundle.associateTo(healthIdToMergeWith);
+
+        Update updateEncounterStmt = shrQueryBuilder.updateEncounterOnMergeStatement(encounterBundle);
+
+        Batch batch = QueryBuilder.batch(updateEncounterStmt);
+
+        Observable<ResultSet> mergeObservable = Observable.from(cqlOperations.executeAsynchronously(batch), Schedulers.io());
+        return mergeObservable.flatMap(respondOnNext(true), RxMaps.<Boolean>logAndForwardError(LOG), completeResponds(true));
     }
 
     public Observable<List<String>> getEncounterIdsForPatient(final String healthId) {
@@ -117,7 +135,7 @@ public class EncounterRepository {
                         List<EncounterDetail> encountersDetails = new ArrayList<>();
                         for (Row row : rows.all()) {
                             String encounterId = row.getString(ENCOUNTER_ID_COLUMN_NAME);
-                            Date date = row.getDate(RECEIVED_DATE_COLUMN_NAME);
+                            Date date = row.getDate(RECEIVED_AT_COLUMN_NAME);
                             encountersDetails.add(new EncounterDetail(encounterId, date));
                         }
                         return Observable.just(encountersDetails);

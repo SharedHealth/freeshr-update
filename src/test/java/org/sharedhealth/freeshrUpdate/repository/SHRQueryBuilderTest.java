@@ -6,11 +6,14 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.sharedhealth.freeshrUpdate.config.ShrUpdateConfiguration;
 import org.sharedhealth.freeshrUpdate.domain.AddressData;
+import org.sharedhealth.freeshrUpdate.domain.EncounterBundle;
 import org.sharedhealth.freeshrUpdate.domain.PatientUpdate;
 import org.sharedhealth.freeshrUpdate.mothers.PatientUpdateMother;
+import org.sharedhealth.freeshrUpdate.utils.TimeUuidUtil;
 
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 import static java.util.Arrays.asList;
 import static junit.framework.Assert.*;
@@ -28,7 +31,7 @@ public class SHRQueryBuilderTest {
     }
 
     @Test
-    public void shouldCreateUpdateQuery() throws Exception {
+    public void shouldCreateUpdatePatientQuery() throws Exception {
         when(configuration.getCassandraKeySpace()).thenReturn("keyspace");
         PatientUpdate patientUpdate = PatientUpdateMother.confidentialPatient();
         Statement update = new SHRQueryBuilder(configuration).updatePatientQuery(patientUpdate.getHealthId(), patientUpdate.getPatientDetailChanges());
@@ -155,7 +158,7 @@ public class SHRQueryBuilderTest {
         String encountersQuery = new SHRQueryBuilder(configuration).findEncounterDetailsByEncounterIdsQuery(encounterIds).toString();
 
         String query = String.format("SELECT %s,%s FROM keyspace.%s WHERE %s IN ('123','234');", ENCOUNTER_ID_COLUMN_NAME,
-                RECEIVED_DATE_COLUMN_NAME, ENCOUNTER_TABLE_NAME, ENCOUNTER_ID_COLUMN_NAME);
+                RECEIVED_AT_COLUMN_NAME, ENCOUNTER_TABLE_NAME, ENCOUNTER_ID_COLUMN_NAME);
         assertEquals(query, encountersQuery);
 
     }
@@ -171,21 +174,54 @@ public class SHRQueryBuilderTest {
         Statement updateEncounterQuery = new SHRQueryBuilder(configuration).updateEncounterQuery(patientUpdate, encounterDetail);
 
         String expectedQuery = String.format("UPDATE keyspace.%s SET %s='N' WHERE %s='123' AND %s=12345;",
-                ENCOUNTER_TABLE_NAME, PATIENT_CONFIDENTIALITY_COLUMN_NAME, ENCOUNTER_ID_COLUMN_NAME, RECEIVED_DATE_COLUMN_NAME);
+                ENCOUNTER_TABLE_NAME, PATIENT_CONFIDENTIALITY_COLUMN_NAME, ENCOUNTER_ID_COLUMN_NAME, RECEIVED_AT_COLUMN_NAME);
         assertEquals(expectedQuery, updateEncounterQuery.toString());
     }
 
     @Test
     public void shouldCreateUpdateEncounterQueryAsVeryRestricted() throws Exception {
         when(configuration.getCassandraKeySpace()).thenReturn("keyspace");
+        PatientUpdate patientUpdate = PatientUpdateMother.confidentialPatient();
+        Date receivedDate = new Date();
+        receivedDate.setTime(12345);
+        EncounterDetail encounterDetail = new EncounterDetail("123", receivedDate);
+
+        Statement updateEncounterQuery = new SHRQueryBuilder(configuration).updateEncounterQuery(patientUpdate, encounterDetail);
+
+        String expectedQuery = String.format("UPDATE keyspace.%s SET %s='V' WHERE %s='123' AND %s=12345;",
+                ENCOUNTER_TABLE_NAME, PATIENT_CONFIDENTIALITY_COLUMN_NAME, ENCOUNTER_ID_COLUMN_NAME, RECEIVED_AT_COLUMN_NAME);
+        assertEquals(expectedQuery, updateEncounterQuery.toString());
+    }
+    
+    @Test
+    public void shouldCreateUpdatePatientQueryOnMerge() throws Exception {
+        when(configuration.getCassandraKeySpace()).thenReturn("keyspace");
         PatientUpdate patientUpdate = PatientUpdateMother.mergedWith("12345");
         Date receivedDate = new Date();
         receivedDate.setTime(12345);
 
-        Statement updatePatientQuery = new SHRQueryBuilder(configuration).updatePatientQuery("123",patientUpdate.getPatientMergeChanges());
+        Statement updatePatientQuery = new SHRQueryBuilder(configuration).updatePatientQuery("123", patientUpdate.getPatientMergeChanges());
 
         String expectedQuery = String.format("UPDATE keyspace.%s SET %s=false,%s='12345' WHERE %s='123';",
                 PATIENT_TABLE_NAME, ACTIVE_COLUMN_NAME, MERGED_WITH_COLUMN_NAME, HEALTH_ID_COLUMN_NAME);
         assertEquals(expectedQuery, updatePatientQuery.toString());
+    }
+
+    @Test
+    public void shouldCreateUpdateEncounterQuery() throws Exception {
+        when(configuration.getCassandraKeySpace()).thenReturn("keyspace");
+        when(configuration.getFhirDocumentSchemaVersion()).thenReturn("v1");
+
+        Date receivedAt = new Date();
+        UUID uuid = TimeUuidUtil.uuidForDate(receivedAt);
+
+        EncounterBundle encounterBundle = new EncounterBundle("E1", "P1", "E1 content", receivedAt);
+
+        Statement updateEncStatement = new SHRQueryBuilder(configuration).updateEncounterOnMergeStatement(encounterBundle);
+        String expectedQuery = String.format("UPDATE keyspace.%s SET content_v1='%s',health_id='%s' WHERE encounter_id='%s' AND received_at=%s;",
+                ENCOUNTER_TABLE_NAME,encounterBundle.getEncounterContent(),encounterBundle.getHealthId(),encounterBundle.getEncounterId(), uuid);
+
+        assertEquals(expectedQuery, updateEncStatement.toString());
+
     }
 }
