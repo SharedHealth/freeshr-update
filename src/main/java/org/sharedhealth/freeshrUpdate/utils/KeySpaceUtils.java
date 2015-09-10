@@ -21,4 +21,7 @@ public class KeySpaceUtils {
     public static final String ENCOUNTER_ID_COLUMN_NAME = "encounter_id";
     public static final String RECEIVED_AT_COLUMN_NAME = "received_at";
     public static final String ENCOUNTER_CONTENT_COLUMN_PREFIX = "content_";
+
+    public static final String CREATED_AT_COLUMN_NAME = "created_at";
+
 }

@@ -1,6 +1,7 @@
 package org.sharedhealth.freeshrUpdate.repository;
 
 import com.datastax.driver.core.Statement;
+import com.datastax.driver.core.querybuilder.Insert;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.datastax.driver.core.querybuilder.Select;
 import com.datastax.driver.core.querybuilder.Update;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import static com.datastax.driver.core.querybuilder.QueryBuilder.*;
 import static org.sharedhealth.freeshrUpdate.utils.KeySpaceUtils.*;
@@ -58,7 +60,15 @@ public class SHRQueryBuilder {
                         .and(eq(RECEIVED_AT_COLUMN_NAME, TimeUuidUtil.uuidForDate(encounterBundle.getReceivedAt())));
 
         return updateEncounter;
+    }
 
+    public Insert insertEncByPatientStatement(EncounterBundle encounterBundle, UUID createdAt){
+        Insert insert = QueryBuilder.insertInto(configuration.getCassandraKeySpace(), ENCOUNTER_BY_PATIENT_TABLE_NAME)
+                                    .value(ENCOUNTER_ID_COLUMN_NAME, encounterBundle.getEncounterId())
+                                    .value(HEALTH_ID_COLUMN_NAME, encounterBundle.getHealthId())
+                                    .value(CREATED_AT_COLUMN_NAME, createdAt);
+
+        return insert;
     }
 
     public Statement findEncounterIdsQuery(String healthId) {

@@ -208,7 +208,7 @@ public class SHRQueryBuilderTest {
     }
 
     @Test
-    public void shouldCreateUpdateEncounterQuery() throws Exception {
+    public void shouldCreateUpdateEncounterStatement() throws Exception {
         when(configuration.getCassandraKeySpace()).thenReturn("keyspace");
         when(configuration.getFhirDocumentSchemaVersion()).thenReturn("v1");
 
@@ -222,6 +222,24 @@ public class SHRQueryBuilderTest {
                 ENCOUNTER_TABLE_NAME,encounterBundle.getEncounterContent(),encounterBundle.getHealthId(),encounterBundle.getEncounterId(), uuid);
 
         assertEquals(expectedQuery, updateEncStatement.toString());
+
+    }
+
+    @Test
+    public void shouldCreateInsertToEncByPatientFeedTableStatement() throws Exception {
+        when(configuration.getCassandraKeySpace()).thenReturn("keyspace");
+
+        UUID uuid = TimeUuidUtil.uuidForDate(new Date());
+
+        EncounterBundle encounterBundle = new EncounterBundle("E1", "P1", "E1 content", null);
+
+        Statement insert = new SHRQueryBuilder(configuration).insertEncByPatientStatement(encounterBundle, uuid);
+        String expectedQuery = String.format("INSERT INTO keyspace.%s(%s,%s,%s) VALUES ('%s','%s',%s);",
+                            ENCOUNTER_BY_PATIENT_TABLE_NAME, ENCOUNTER_ID_COLUMN_NAME, HEALTH_ID_COLUMN_NAME, CREATED_AT_COLUMN_NAME,
+                            encounterBundle.getEncounterId(), encounterBundle.getHealthId(), uuid);
+
+        assertEquals(expectedQuery, insert.toString());
+
 
     }
 }

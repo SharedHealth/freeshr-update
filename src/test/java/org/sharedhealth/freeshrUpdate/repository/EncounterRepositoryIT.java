@@ -28,6 +28,7 @@ import static java.util.Arrays.asList;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
+import static org.sharedhealth.freeshrUpdate.utils.KeySpaceUtils.ENCOUNTER_BY_PATIENT_TABLE_NAME;
 import static org.sharedhealth.freeshrUpdate.utils.KeySpaceUtils.ENCOUNTER_ID_COLUMN_NAME;
 import static org.sharedhealth.freeshrUpdate.utils.KeySpaceUtils.HEALTH_ID_COLUMN_NAME;
 
@@ -92,8 +93,12 @@ public class EncounterRepositoryIT {
 
         encounterRepository.associateEncounterBundleTo(encounterBundle, "P2").toBlocking().first();
         EncounterBundle encounterBundleAfterMerge = fetchEncounterBundle("E1");
+        List<Row> encByPatient = fetchEncounterByPatientFeed();
 
         assertEncounter(encounterBundleAfterMerge, "E1", "P2", "E1 content for P2");
+        assertThat(encByPatient.size(), is(1));
+        assertThat("E1", is(encByPatient.get(0).getString("encounter_id")));
+        assertThat("P2", is(encByPatient.get(0).getString("health_id")));
     }
 
     private EncounterBundle fetchEncounterBundle(String encounterId) {
@@ -103,6 +108,11 @@ public class EncounterRepositoryIT {
         String healthId = row.getString(HEALTH_ID_COLUMN_NAME);
         String content = row.getString(encounterContentColumnName);
         return new EncounterBundle(encounterId, healthId, content, null);
+    }
+
+    private List<Row> fetchEncounterByPatientFeed() {
+        ResultSet rs = cqlOperations.query(QueryBuilder.select().all().from("freeshr", ENCOUNTER_BY_PATIENT_TABLE_NAME));
+        return rs.all();
     }
 
     private void insertEncounter(String encounterId, String healthId, Date recievedAt, String content) {

@@ -4,6 +4,7 @@ import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.querybuilder.Batch;
+import com.datastax.driver.core.querybuilder.Insert;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.datastax.driver.core.querybuilder.Update;
 import org.sharedhealth.freeshrUpdate.domain.EncounterBundle;
@@ -24,6 +25,7 @@ import rx.schedulers.Schedulers;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 import static org.sharedhealth.freeshrUpdate.repository.RxMaps.completeResponds;
 import static org.sharedhealth.freeshrUpdate.repository.RxMaps.respondOnNext;
@@ -99,9 +101,11 @@ public class EncounterRepository {
     public Observable<Boolean> associateEncounterBundleTo(EncounterBundle encounterBundle, String healthIdToMergeWith){
         encounterBundle.associateTo(healthIdToMergeWith);
 
+        UUID createdAt = TimeUuidUtil.uuidForDate(new Date());
         Update updateEncounterStmt = shrQueryBuilder.updateEncounterOnMergeStatement(encounterBundle);
+        Insert insertEncByPatientStatement = shrQueryBuilder.insertEncByPatientStatement(encounterBundle, createdAt);
 
-        Batch batch = QueryBuilder.batch(updateEncounterStmt);
+        Batch batch = QueryBuilder.batch(updateEncounterStmt, insertEncByPatientStatement);
 
         Observable<ResultSet> mergeObservable = Observable.from(cqlOperations.executeAsynchronously(batch), Schedulers.io());
         return mergeObservable.flatMap(respondOnNext(true), RxMaps.<Boolean>logAndForwardError(LOG), completeResponds(true));
