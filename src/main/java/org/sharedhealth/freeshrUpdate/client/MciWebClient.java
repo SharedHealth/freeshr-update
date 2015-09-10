@@ -1,8 +1,9 @@
 package org.sharedhealth.freeshrUpdate.client;
 
-import org.apache.log4j.Logger;
 import org.sharedhealth.freeshrUpdate.config.ShrUpdateConfiguration;
 import org.sharedhealth.freeshrUpdate.identity.IdentityServiceClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -17,7 +18,7 @@ import static org.sharedhealth.freeshrUpdate.utils.Headers.getMCIIdentityHeaders
 public class MciWebClient {
     private IdentityServiceClient identityServiceClient;
     private ShrUpdateConfiguration properties;
-    private Logger log = Logger.getLogger(MciWebClient.class);
+    private Logger log = LoggerFactory.getLogger(MciWebClient.class);
 
     @Autowired
     public MciWebClient(IdentityServiceClient identityServiceClient, ShrUpdateConfiguration properties) {

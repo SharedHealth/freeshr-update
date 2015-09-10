@@ -25,6 +25,8 @@ repositories {
 
 configurations.all {
     exclude group: 'org.jboss.netty', module: 'netty'
+    exclude group: 'commons-logging', module: "commons-logging"
+    exclude group: 'ch.qos.logback', module: "logback-classic"
 }
 
 ext.libraries = [
