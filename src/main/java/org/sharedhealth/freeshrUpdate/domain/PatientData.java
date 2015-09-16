@@ -119,4 +119,8 @@ public class PatientData {
     public boolean hasConfidentialChange() {
         return getPatientDetailChanges().containsKey(CONFIDENTIALITY_COLUMN_NAME);
     }
+
+    public boolean hasAddressChange(){
+        return !getAddressChange().isEmpty();
+    }
 }

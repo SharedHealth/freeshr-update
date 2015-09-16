@@ -1,5 +1,6 @@
 package org.sharedhealth.freeshrUpdate.domain;
 
+import junit.framework.Assert;
 import org.junit.Test;
 import org.sharedhealth.freeshrUpdate.utils.Confidentiality;
 
@@ -34,6 +35,7 @@ public class PatientDataTest {
         PatientData addressChange = addressChange(addressData);
 
         assertTrue(addressChange.hasPatientDetailChanges());
+        Assert.assertTrue(addressChange.hasAddressChange());
         assertFalse(addressChange.hasConfidentialChange());
     }
 
@@ -41,35 +43,45 @@ public class PatientDataTest {
     public void shouldIdentifyDivisionIdChanges() throws Exception {
         AddressData addressData = new AddressData();
         addressData.setDivisionId("foo");
-        assertTrue(addressChange(addressData).hasPatientDetailChanges());
+        PatientData patientData = addressChange(addressData);
+        assertTrue(patientData.hasPatientDetailChanges());
+        assertTrue(patientData.hasAddressChange());
     }
 
     @Test
     public void shouldIdentifyDistrictIdChanges() throws Exception {
         AddressData addressData = new AddressData();
         addressData.setDistrictId("foo");
-        assertTrue(addressChange(addressData).hasPatientDetailChanges());
+        PatientData patientData = addressChange(addressData);
+        assertTrue(patientData.hasPatientDetailChanges());
+        assertTrue(patientData.hasAddressChange());
     }
 
     @Test
     public void shouldIdentifyUpazilaIdChanges() throws Exception {
         AddressData addressData = new AddressData();
         addressData.setUpazilaId("foo");
-        assertTrue(addressChange(addressData).hasPatientDetailChanges());
+        PatientData patientData = addressChange(addressData);
+        assertTrue(patientData.hasPatientDetailChanges());
+        assertTrue(patientData.hasAddressChange());
     }
 
     @Test
     public void shouldIdentifyCityCorporationIdChanges() throws Exception {
         AddressData addressData = new AddressData();
         addressData.setCityCorporationId("foo");
-        assertTrue(addressChange(addressData).hasPatientDetailChanges());
+        PatientData patientData = addressChange(addressData);
+        assertTrue(patientData.hasPatientDetailChanges());
+        assertTrue(patientData.hasAddressChange());
     }
 
     @Test
     public void shouldIdentifyUnionOrUrbanWardIdChanges() throws Exception {
         AddressData addressData = new AddressData();
         addressData.setUnionOrUrbanWardId("foo");
-        assertTrue(addressChange(addressData).hasPatientDetailChanges());
+        PatientData patientData = addressChange(addressData);
+        assertTrue(patientData.hasPatientDetailChanges());
+        assertTrue(patientData.hasAddressChange());
     }
 
     @Test
@@ -108,5 +120,12 @@ public class PatientDataTest {
         PatientData patientData = changeOnlyConfidential("No");
         assertTrue(patientData.hasPatientDetailChanges());
         assertTrue(patientData.getPatientDetailChanges().get(CONFIDENTIALITY_COLUMN_NAME).equals(Confidentiality.Normal.getLevel()));
+    }
+
+    @Test
+    public void shouldCheckIfAddressDataHasNoChanges() throws Exception {
+        PatientData patientData = new PatientData();
+        assertFalse(patientData.hasAddressChange());
+
     }
 }
