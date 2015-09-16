@@ -5,16 +5,16 @@ import com.datastax.driver.core.querybuilder.Insert;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.datastax.driver.core.querybuilder.Select;
 import com.datastax.driver.core.querybuilder.Update;
+import org.apache.commons.lang3.StringUtils;
 import org.sharedhealth.freeshrUpdate.config.ShrUpdateConfiguration;
+import org.sharedhealth.freeshrUpdate.domain.AddressData;
 import org.sharedhealth.freeshrUpdate.domain.EncounterBundle;
 import org.sharedhealth.freeshrUpdate.domain.PatientUpdate;
 import org.sharedhealth.freeshrUpdate.utils.TimeUuidUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 import static com.datastax.driver.core.querybuilder.QueryBuilder.*;
 import static org.sharedhealth.freeshrUpdate.utils.KeySpaceUtils.*;
@@ -88,7 +88,7 @@ public class SHRQueryBuilder {
     }
 
     public String getEncounterContentColumnName(){
-        return String.format("%s%s", ENCOUNTER_CONTENT_COLUMN_PREFIX,configuration.getFhirDocumentSchemaVersion());
+        return String.format("%s%s", ENCOUNTER_CONTENT_COLUMN_PREFIX, configuration.getFhirDocumentSchemaVersion());
     }
 
     public Statement updateEncounterQuery(PatientUpdate patientUpdate, EncounterDetail encountersDetail) {
@@ -100,5 +100,21 @@ public class SHRQueryBuilder {
         
         return update.where(eq(ENCOUNTER_ID_COLUMN_NAME, encountersDetail.getEncounterId())).
                 and(eq(RECEIVED_AT_COLUMN_NAME, encountersDetail.getReceivedDate()));
+    }
+
+    public Statement insertCatchmentFeedForAddressChange(AddressData addressChange, EncounterDetail encounterDetail){
+        UUID createdAt = TimeUuidUtil.uuidForDate(new Date());
+
+        Insert insertEncByCatchmentStmt = QueryBuilder.insertInto(configuration.getCassandraKeySpace(), ENCOUNTER_BY_CATCHMENT_TABLE_NAME)
+                                    .value(DIVISION_ID_COLUMN_NAME, addressChange.getDistrictId())
+                                    .value(DISTRICT_ID_COLUMN_NAME, addressChange.getConcatenatedDistrictId())
+                                    .value(UPAZILA_ID_COLUMN_NAME, addressChange.getConcatenatedUpazilaId())
+                                    .value(YEAR, Calendar.getInstance().get(Calendar.YEAR))
+                                    .value(CREATED_AT_COLUMN_NAME, createdAt)
+                                    .value(CITY_CORPORATION_ID_COLUMN_NAME, StringUtils.defaultString(addressChange.getConcatenatedCityCorporationId()))
+                                    .value(UNION_OR_URBAN_COLUMN_NAME, StringUtils.defaultString(addressChange.getConcatenatedWardId()))
+                                    .value(ENCOUNTER_ID_COLUMN_NAME, encounterDetail);
+
+        return insertEncByCatchmentStmt;
     }
 }

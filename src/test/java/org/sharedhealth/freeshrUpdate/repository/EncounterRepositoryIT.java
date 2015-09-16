@@ -48,7 +48,7 @@ public class EncounterRepositoryIT {
 
 
     @Test
-    public void shouldFetchEncounterIdsForAGivenPatient() throws Exception {
+    public void shouldFetchEncounterIdsForAGivenPatient(){
 
         Insert insertE1P1 = QueryBuilder.insertInto("freeshr", "enc_by_patient").value("encounter_id", "E1").value("health_id","P1").value("created_at", TimeUuidUtil.uuidForDate(new DateTime(2015,07,8,0,0).toDate()));
         Insert insertE2P1 = QueryBuilder.insertInto("freeshr", "enc_by_patient").value("encounter_id", "E2").value("health_id","P1").value("created_at", TimeUuidUtil.uuidForDate(new DateTime(2015,07,9,0,0).toDate()));
@@ -62,7 +62,7 @@ public class EncounterRepositoryIT {
     }
 
     @Test
-    public void shouldFetchEncountersForAGivenPatient() throws Exception {
+    public void shouldFetchEncountersForAGivenPatient() {
         Insert insertE1P1 = QueryBuilder.insertInto("freeshr", "enc_by_patient").value("encounter_id", "E1").value("health_id","P1").value("created_at", TimeUuidUtil.uuidForDate(new DateTime(2015,07,8,0,0).toDate()));
         Insert insertE2P1 = QueryBuilder.insertInto("freeshr", "enc_by_patient").value("encounter_id", "E2").value("health_id","P1").value("created_at", TimeUuidUtil.uuidForDate(new DateTime(2015,07,9,0,0).toDate()));
         Insert insertE3P2 = QueryBuilder.insertInto("freeshr", "enc_by_patient").value("encounter_id", "E3").value("health_id","P2").value("created_at", TimeUuidUtil.uuidForDate(new DateTime(2015,07,8,0,0).toDate()));
@@ -85,7 +85,7 @@ public class EncounterRepositoryIT {
     }
 
     @Test
-    public void shouldAssociateAnEncounterWithNewHealthId() throws Exception {
+    public void shouldAssociateAnEncounterWithNewHealthId(){
         EncounterBundle encounterBundle = new EncounterBundle("E1", "P1", "E1 content for P1", new DateTime(2015,07,8,0,0).toDate());
         insertEncounter(encounterBundle.getEncounterId(), encounterBundle.getHealthId(), encounterBundle.getReceivedAt(), encounterBundle.getEncounterContent());
         EncounterBundle encounterBeforeMerge = fetchEncounterBundle("E1");

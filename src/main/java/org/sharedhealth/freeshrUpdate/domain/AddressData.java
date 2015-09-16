@@ -3,6 +3,10 @@ package org.sharedhealth.freeshrUpdate.domain;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class AddressData {
     @JsonProperty("address_line")
@@ -17,22 +21,6 @@ public class AddressData {
     private String cityCorporationId;
     @JsonProperty("union_or_urban_ward_id")
     private String unionOrUrbanWardId;
-    @JsonProperty("rural_ward_id")
-    private String ruralWardId;
-    @JsonProperty("holding_number")
-    private String holdingNumber;
-    @JsonProperty("street")
-    private String street;
-    @JsonProperty("area_mouja")
-    private String areaMouja;
-    @JsonProperty("village")
-    private String village;
-    @JsonProperty("post_office")
-    private String postOffice;
-    @JsonProperty("post_code")
-    private String postCode;
-    @JsonProperty("country_code")
-    private String countryCode;
 
     public String getAddressLine() {
         return addressLine;
@@ -82,68 +70,26 @@ public class AddressData {
         this.unionOrUrbanWardId = unionOrUrbanWardId;
     }
 
-    public String getRuralWardId() {
-        return ruralWardId;
+    public String getConcatenatedDistrictId() {
+        return divisionId + districtId;
     }
 
-    public void setRuralWardId(String ruralWardId) {
-        this.ruralWardId = ruralWardId;
+    public String getConcatenatedUpazilaId() {
+        return divisionId + districtId + upazilaId;
     }
 
-    public String getHoldingNumber() {
-        return holdingNumber;
+    public String getConcatenatedCityCorporationId() {
+        return cityCorporationId != null ? divisionId + districtId + upazilaId + cityCorporationId : null;
     }
 
-    public void setHoldingNumber(String holdingNumber) {
-        this.holdingNumber = holdingNumber;
+    public String getConcatenatedWardId() {
+        return unionOrUrbanWardId != null ? divisionId + districtId + upazilaId + cityCorporationId + unionOrUrbanWardId : null;
     }
 
-    public String getStreet() {
-        return street;
-    }
-
-    public void setStreet(String street) {
-        this.street = street;
-    }
-
-    public String getAreaMouja() {
-        return areaMouja;
-    }
-
-    public void setAreaMouja(String areaMouja) {
-        this.areaMouja = areaMouja;
-    }
-
-    public String getVillage() {
-        return village;
-    }
-
-    public void setVillage(String village) {
-        this.village = village;
-    }
-
-    public String getPostOffice() {
-        return postOffice;
-    }
-
-    public void setPostOffice(String postOffice) {
-        this.postOffice = postOffice;
-    }
-
-    public String getPostCode() {
-        return postCode;
-    }
-
-    public void setPostCode(String postCode) {
-        this.postCode = postCode;
-    }
-
-    public String getCountryCode() {
-        return countryCode;
-    }
-
-    public void setCountryCode(String countryCode) {
-        this.countryCode = countryCode;
+    public boolean isEmpty(){
+        List collection = new ArrayList() {{add(divisionId);add(districtId);add(upazilaId);add(cityCorporationId);add(unionOrUrbanWardId);add(addressLine);}};
+        collection.removeAll(Collections.singleton(null));
+        return collection.size() == 0;
     }
 
 }

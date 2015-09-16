@@ -3,6 +3,7 @@ package org.sharedhealth.freeshrUpdate.utils;
 public class KeySpaceUtils {
     public static final String PATIENT_TABLE_NAME = "patient";
     public static final String ENCOUNTER_BY_PATIENT_TABLE_NAME = "enc_by_patient";
+    public static final String ENCOUNTER_BY_CATCHMENT_TABLE_NAME = "enc_by_catchment";
     public static final String ENCOUNTER_TABLE_NAME = "encounter";
 
     public static final String HEALTH_ID_COLUMN_NAME = "health_id";
@@ -14,6 +15,7 @@ public class KeySpaceUtils {
     public static final String DIVISION_ID_COLUMN_NAME = "division_id";
     public static final String DISTRICT_ID_COLUMN_NAME = "district_id";
     public static final String UPAZILA_ID_COLUMN_NAME = "upazila_id";
+    public static final String YEAR = "year";
     public static final String CITY_CORPORATION_ID_COLUMN_NAME = "city_corporation_id";
     public static final String UNION_OR_URBAN_COLUMN_NAME = "union_urban_ward_id";
     public static final String PATIENT_CONFIDENTIALITY_COLUMN_NAME = "patient_confidentiality";
