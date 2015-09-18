@@ -84,21 +84,6 @@ public class PatientUpdateEventWorkerTest {
     }
 
     @Test
-    public void shouldNotUpdateEncounterWhenPatientConfidentialityIsNotChanged() throws Exception {
-        when(patientRepository.applyUpdate(any(PatientUpdate.class))).thenReturn(Observable.just(true));
-        Entry entry = new Entry();
-        entry.setId(UUID.randomUUID().toString());
-        entry.setTitle("foo");
-        entry.setContents(genarateChangeContent("feeds/update_feed_without_confidential.txt"));
-        entry.setPublished(new Date());
-        new PatientUpdateEventWorker(patientRepository, encounterRepository).process(new Event(entry));
-
-        ArgumentCaptor<PatientUpdate> captor = ArgumentCaptor.forClass(PatientUpdate.class);
-        verify(patientRepository).applyUpdate(captor.capture());
-        verify(encounterRepository, never()).applyUpdate(any(PatientUpdate.class));
-    }
-
-    @Test
     public void shouldNotUpdateEncounterWhenPatientUpdateFails() throws Exception {
         when(patientRepository.applyUpdate(any(PatientUpdate.class))).thenReturn(Observable.just(false));
         Entry entry = new Entry();

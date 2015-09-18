@@ -22,6 +22,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cassandra.core.CqlOperations;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import rx.Observable;
+import rx.functions.Action0;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -34,6 +36,7 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.sharedhealth.freeshrUpdate.mothers.PatientUpdateMother.addressChange;
+import static org.sharedhealth.freeshrUpdate.mothers.PatientUpdateMother.confidentialPatient;
 import static org.sharedhealth.freeshrUpdate.utils.KeySpaceUtils.*;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -86,17 +89,40 @@ public class EncounterRepositoryIT {
     public void shouldAssociateAnEncounterWithNewHealthId(){
         EncounterBundle encounterBundle = new EncounterBundle("E1", "P1", "E1 content for P1", new DateTime(2015,07,8,0,0).toDate());
         insertEncounter(encounterBundle.getEncounterId(), encounterBundle.getHealthId(), encounterBundle.getReceivedAt(), encounterBundle.getEncounterContent());
-        EncounterBundle encounterBeforeMerge = fetchEncounterBundle("E1");
-        assertEncounter(encounterBeforeMerge, "E1", "P1", "E1 content for P1");
+        Row encounterBeforeMerge = fetchEncounter("E1");
+        assertEncounterRow(encounterBeforeMerge, "E1", "P1", "E1 content for P1", null);
 
         encounterRepository.associateEncounterBundleTo(encounterBundle, "P2").toBlocking().first();
-        EncounterBundle encounterBundleAfterMerge = fetchEncounterBundle("E1");
+        Row encounterBundleAfterMerge = fetchEncounter("E1");
         List<Row> encByPatient = fetchEncounterByPatientFeed();
 
-        assertEncounter(encounterBundleAfterMerge, "E1", "P2", "E1 content for P2");
+        assertEncounterRow(encounterBundleAfterMerge, "E1", "P2", "E1 content for P2", null);
         assertThat(encByPatient.size(), is(1));
         assertThat("E1", is(encByPatient.get(0).getString("encounter_id")));
         assertThat("P2", is(encByPatient.get(0).getString("health_id")));
+    }
+
+    @Test
+    public void shouldUpdateEncounterTableForPatientConfidentialityChanges() throws Exception {
+        insertEncounter("E1", "P1", new DateTime(2015, 07, 8, 0, 0).toDate(), "e1 content");
+        insertEncounter("E2", "P1", new DateTime(2015, 07, 9, 0, 0).toDate(), "e2 content");
+        insertEncByPatient("E1", "P1", new DateTime(2015, 07, 8, 0, 0).toDate());
+        insertEncByPatient("E2", "P1", new DateTime(2015, 07, 9, 0, 0).toDate());
+
+        assertEncounterRow(fetchEncounter("E1"), "E1", "P1", "e1 content", null);
+        assertEncounterRow(fetchEncounter("E2"), "E2", "P1", "e2 content", null);
+
+        PatientUpdate patientUpdate = confidentialPatient("P1");
+        Observable<Boolean> updateObservable = encounterRepository.applyUpdate(patientUpdate);
+
+        updateObservable.doOnSubscribe(new Action0() {
+            @Override
+            public void call() {
+                assertEncounterRow(fetchEncounter("E1"), "E1", "P1", "e1 content", "YES");
+                assertEncounterRow(fetchEncounter("E2"), "E2", "P1", "e2 content", "YES");
+            }
+        });
+
     }
 
     @Test
@@ -127,17 +153,22 @@ public class EncounterRepositoryIT {
         patientUpdate.setChangeSetMap(addressChange(addressData));
         patientUpdate.setHealthId("P1");
 
-        encounterRepository.applyUpdate(patientUpdate).toBlocking().last();
+        Observable<Boolean> updateObservable = encounterRepository.applyUpdate(patientUpdate);
 
-        assertThat(fetchCatchmentFeed("20","15").size(), is(3));
-        List<Row> rows = fetchCatchmentFeed("30", "3026");
-        assertThat(rows.size(), is(3));
-        assertThat(rows.get(0).getString("upazila_id"), is("302618"));
-        assertThat(rows.get(0).getString("city_corporation_id"), is("30261860"));
-        assertThat(rows.get(0).getString("union_urban_ward_id"), is("3026186045"));
-        assertThat(rows.get(0).getString("encounter_id"), is("E1"));
-        assertThat(rows.get(1).getString("encounter_id"), is("E2"));
-        assertThat(rows.get(2).getString("encounter_id"), is("E3"));
+        updateObservable.doOnSubscribe(new Action0() {
+            @Override
+            public void call() {
+                assertThat(fetchCatchmentFeed("20", "15").size(), is(3));
+                List<Row> rows = fetchCatchmentFeed("30", "3026");
+                assertThat(rows.size(), is(3));
+                assertThat(rows.get(0).getString("upazila_id"), is("302618"));
+                assertThat(rows.get(0).getString("city_corporation_id"), is("30261860"));
+                assertThat(rows.get(0).getString("union_urban_ward_id"), is("3026186045"));
+                assertThat(rows.get(0).getString("encounter_id"), is("E1"));
+                assertThat(rows.get(1).getString("encounter_id"), is("E2"));
+                assertThat(rows.get(2).getString("encounter_id"), is("E3"));
+            }
+        });
 
 
     }
@@ -147,13 +178,10 @@ public class EncounterRepositoryIT {
         cqlOperations.execute(insert);
     }
 
-    private EncounterBundle fetchEncounterBundle(String encounterId) {
+    private Row fetchEncounter(String encounterId) {
         String encounterContentColumnName = queryBuilder.getEncounterContentColumnName();
-        ResultSet rs = cqlOperations.query(QueryBuilder.select(ENCOUNTER_ID_COLUMN_NAME, encounterContentColumnName, HEALTH_ID_COLUMN_NAME).from("freeshr", "encounter").where(eq(KeySpaceUtils.ENCOUNTER_ID_COLUMN_NAME, encounterId)).limit(1));
-        Row row = rs.all().get(0);
-        String healthId = row.getString(HEALTH_ID_COLUMN_NAME);
-        String content = row.getString(encounterContentColumnName);
-        return new EncounterBundle(encounterId, healthId, content, null);
+        ResultSet rs = cqlOperations.query(QueryBuilder.select().all().from("freeshr", "encounter").where(eq(KeySpaceUtils.ENCOUNTER_ID_COLUMN_NAME, encounterId)).limit(1));
+        return rs.all().get(0);
     }
 
     private List<Row> fetchEncounterByPatientFeed() {
@@ -190,6 +218,13 @@ public class EncounterRepositoryIT {
         assertEquals(encounterId, encounterBundle.getEncounterId());
         assertEquals(healthId, encounterBundle.getHealthId());
         assertEquals(content, encounterBundle.getEncounterContent());
+    }
+
+    private void assertEncounterRow(Row encounterRow, String encounterId, String healthId, String content, String confidentiality) {
+        assertEquals(encounterId, encounterRow.getString("encounter_id"));
+        assertEquals(healthId, encounterRow.getString("health_id"));
+        assertEquals(content, encounterRow.getString("content_v1"));
+        assertEquals(confidentiality, encounterRow.getString("patient_confidentiality"));
     }
 
     @After
