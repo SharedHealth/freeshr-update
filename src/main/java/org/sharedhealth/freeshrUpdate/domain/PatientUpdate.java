@@ -97,6 +97,10 @@ public class PatientUpdate {
         return getChangeSet().hasConfidentialChange();
     }
 
+    public boolean hasAddressChange(){
+        return getChangeSet().hasAddressChange();
+    }
+
     public Map<String, Object> getPatientDetailChanges() {
         return getChangeSet().getPatientDetailChanges();
     }

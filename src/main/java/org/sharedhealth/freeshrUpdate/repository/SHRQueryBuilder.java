@@ -102,18 +102,19 @@ public class SHRQueryBuilder {
                 and(eq(RECEIVED_AT_COLUMN_NAME, encountersDetail.getReceivedDate()));
     }
 
-    public Statement insertCatchmentFeedForAddressChange(AddressData addressChange, EncounterDetail encounterDetail){
+    public Statement insertCatchmentFeedForAddressChange(PatientUpdate patientUpdate, EncounterDetail encounterDetail){
+        AddressData addressChange = patientUpdate.getChangeSet().getAddressChange();
         UUID createdAt = TimeUuidUtil.uuidForDate(new Date());
 
         Insert insertEncByCatchmentStmt = QueryBuilder.insertInto(configuration.getCassandraKeySpace(), ENCOUNTER_BY_CATCHMENT_TABLE_NAME)
-                                    .value(DIVISION_ID_COLUMN_NAME, addressChange.getDistrictId())
+                                    .value(DIVISION_ID_COLUMN_NAME, addressChange.getDivisionId())
                                     .value(DISTRICT_ID_COLUMN_NAME, addressChange.getConcatenatedDistrictId())
                                     .value(UPAZILA_ID_COLUMN_NAME, addressChange.getConcatenatedUpazilaId())
                                     .value(YEAR, Calendar.getInstance().get(Calendar.YEAR))
                                     .value(CREATED_AT_COLUMN_NAME, createdAt)
                                     .value(CITY_CORPORATION_ID_COLUMN_NAME, StringUtils.defaultString(addressChange.getConcatenatedCityCorporationId()))
                                     .value(UNION_OR_URBAN_COLUMN_NAME, StringUtils.defaultString(addressChange.getConcatenatedWardId()))
-                                    .value(ENCOUNTER_ID_COLUMN_NAME, encounterDetail);
+                                    .value(ENCOUNTER_ID_COLUMN_NAME, encounterDetail.getEncounterId());
 
         return insertEncByCatchmentStmt;
     }

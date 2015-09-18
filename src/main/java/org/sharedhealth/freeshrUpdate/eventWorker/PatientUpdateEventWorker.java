@@ -106,7 +106,7 @@ public class PatientUpdateEventWorker implements EventWorker {
             public Observable<Boolean> call(Boolean patientUpdated) {
                 LOG.debug(String.format("Patient %s %s updated", patientUpdate.getHealthId(), patientUpdated ? "" :
                         "not"));
-                if (patientUpdated && patientUpdate.hasConfidentialChange()) {
+                if (patientUpdated) {
                     return encounterRepository.applyUpdate(patientUpdate);
                 }
                 return Observable.just(false);

@@ -1,5 +1,6 @@
 package org.sharedhealth.freeshrUpdate.repository;
 
+import com.datastax.driver.core.BatchStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Statement;
@@ -57,9 +58,18 @@ public class EncounterRepository {
             @Override
             public Observable<Boolean> call(List<EncounterDetail> encountersDetails) {
                 List<Observable<ResultSet>> observables = new ArrayList<>();
-                for (EncounterDetail encountersDetail : encountersDetails) {
-                    Statement updateEncounterQuery = shrQueryBuilder.updateEncounterQuery(patientUpdate, encountersDetail);
-                    observables.add(Observable.from(cqlOperations.executeAsynchronously(updateEncounterQuery)));
+                for (EncounterDetail encounterDetail : encountersDetails) {
+                    BatchStatement batchStatement = new BatchStatement();
+                    if(patientUpdate.hasConfidentialChange()){
+                        Statement updateEncounterQuery = shrQueryBuilder.updateEncounterQuery(patientUpdate, encounterDetail);
+                        batchStatement.add(updateEncounterQuery);
+                    }
+                    if(patientUpdate.hasAddressChange()){
+                        Statement insertCatchmentFeedForAddressChange = shrQueryBuilder.insertCatchmentFeedForAddressChange(patientUpdate, encounterDetail);
+                        batchStatement.add(insertCatchmentFeedForAddressChange);
+
+                    }
+                    observables.add(Observable.from(cqlOperations.executeAsynchronously(batchStatement)));
                 }
                 return Observable.zip(observables, new FuncN<Boolean>() {
                     @Override
@@ -139,7 +149,7 @@ public class EncounterRepository {
                         List<EncounterDetail> encountersDetails = new ArrayList<>();
                         for (Row row : rows.all()) {
                             String encounterId = row.getString(ENCOUNTER_ID_COLUMN_NAME);
-                            Date date = row.getDate(RECEIVED_AT_COLUMN_NAME);
+                            Date date = TimeUuidUtil.getDateFromUUID(row.getUUID(RECEIVED_AT_COLUMN_NAME));
                             encountersDetails.add(new EncounterDetail(encounterId, date));
                         }
                         return Observable.just(encountersDetails);
