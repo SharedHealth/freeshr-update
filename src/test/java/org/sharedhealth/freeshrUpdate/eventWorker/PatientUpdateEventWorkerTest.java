@@ -15,10 +15,7 @@ import org.sharedhealth.freeshrUpdate.repository.PatientRepository;
 import org.sharedhealth.freeshrUpdate.utils.FileUtil;
 import rx.Observable;
 
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -110,7 +107,16 @@ public class PatientUpdateEventWorkerTest {
 
         ArgumentCaptor<PatientUpdate> captor = ArgumentCaptor.forClass(PatientUpdate.class);
 
-        verify(patientRepository).merge(captor.capture());
+        verify(patientRepository, times(1)).merge(captor.capture());
+        PatientUpdate actualUpdateApplied = captor.getValue();
+        assertEquals("98103658541",actualUpdateApplied.getHealthId());
+        assertEquals(new HashMap<String, Object>(){{
+            put("active", false);
+            put("merged_with", "98103325539");
+        }},actualUpdateApplied.getPatientMergeChanges());
+
+
+        verify(encounterRepository,times(1)).applyMerge(captor.capture());
         verify(patientRepository, never()).applyUpdate(any(PatientUpdate.class));
 
     }

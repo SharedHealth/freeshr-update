@@ -54,7 +54,7 @@ public class PatientUpdateEventWorker implements EventWorker {
         encounterMergeObservable.subscribe(new Action1<Boolean>() {
             @Override
             public void call(Boolean updated) {
-                LOG.debug(String.format("Patient is %s updated", updated ? "": "not" ));
+                LOG.debug(String.format("Patient's encounters are %s merged", updated ? "": "not" ));
             }
         }, actionOnError());
 
@@ -121,7 +121,10 @@ public class PatientUpdateEventWorker implements EventWorker {
             public Observable<Boolean> call(Boolean patientUpdated) {
                 LOG.debug(String.format("Patient %s %s updated", patientUpdate.getHealthId(), patientUpdated ? "" :
                         "not"));
-                return encounterRepository.applyMerge(patientUpdate);
+                if(patientUpdated != null)
+                    return encounterRepository.applyMerge(patientUpdate);
+                else
+                    return Observable.just(false);
             }
         };
     }

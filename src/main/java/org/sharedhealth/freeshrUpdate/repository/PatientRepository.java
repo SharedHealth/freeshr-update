@@ -84,7 +84,7 @@ public class PatientRepository {
         return new Func0<Observable<? extends Boolean>>() {
             @Override
             public Observable<? extends Boolean> call() {
-                return Observable.just(false);
+                return Observable.just(null);
             }
         };
     }
