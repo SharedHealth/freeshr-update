@@ -49,7 +49,7 @@ public class PatientUpdateEventWorker implements EventWorker {
     }
 
     private void merge(final PatientUpdate patientUpdate) {
-        Observable<Boolean> savePatientResponse = patientRepository.merge(patientUpdate);
+        Observable<Boolean> savePatientResponse = patientRepository.mergeIfFound(patientUpdate);
         Observable<Boolean> encounterMergeObservable = savePatientResponse.flatMap(onPatientMergeSuccess(patientUpdate), onError(), onCompleted());
         encounterMergeObservable.subscribe(new Action1<Boolean>() {
             @Override
@@ -121,7 +121,7 @@ public class PatientUpdateEventWorker implements EventWorker {
             public Observable<Boolean> call(Boolean patientUpdated) {
                 LOG.debug(String.format("Patient %s %s updated", patientUpdate.getHealthId(), patientUpdated ? "" :
                         "not"));
-                if(patientUpdated != null)
+                if(patientUpdated)
                     return encounterRepository.applyMerge(patientUpdate);
                 else
                     return Observable.just(false);

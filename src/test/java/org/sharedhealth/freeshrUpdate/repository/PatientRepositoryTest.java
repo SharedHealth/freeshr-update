@@ -14,7 +14,11 @@ import org.sharedhealth.freeshrUpdate.domain.PatientUpdate;
 import org.sharedhealth.freeshrUpdate.mothers.PatientUpdateMother;
 import org.springframework.cassandra.core.CqlOperations;
 
+import java.util.HashMap;
+
 import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertTrue;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -86,12 +90,11 @@ public class PatientRepositoryTest {
 
         ArgumentCaptor<Statement> captor = ArgumentCaptor.forClass(Statement.class);
         verify(cqlOperations, times(1)).executeAsynchronously(captor.capture());
-        Statement statement = captor.getValue();
     }
 
     @Test
     public void shouldMergeExistingPatient() throws Exception {
-        PatientUpdate patientUpdate = PatientUpdateMother.confidentialPatient();
+        PatientUpdate patientUpdate = PatientUpdateMother.merge("P1", "P2");
 
         when(result.getLong("count")).thenReturn(1L);
         when(resultSet.one()).thenReturn(result);
@@ -106,14 +109,39 @@ public class PatientRepositoryTest {
         when(cqlOperations.executeAsynchronously(updateQuery)).thenReturn(resultSetFuture);
 
         new PatientRepository(cqlOperations, shrQueryBuilder)
-                .merge(patientUpdate).toBlocking().first();
+                .mergeIfFound(patientUpdate).toBlocking().first();
 
-        verify(shrQueryBuilder, times(1)).findPatientQuery(patientUpdate.getHealthId());
-        verify(shrQueryBuilder, times(1)).updatePatientQuery(patientUpdate.getHealthId(), patientUpdate.getPatientMergeChanges());
+        verify(shrQueryBuilder, times(1)).findPatientQuery("P1");
+        verify(shrQueryBuilder, times(1)).updatePatientQuery("P1", new HashMap<String,Object>(){{
+           put("active", false);
+           put("merged_with", "P2");
+        }});
 
         ArgumentCaptor<Statement> captor = ArgumentCaptor.forClass(Statement.class);
         verify(cqlOperations, times(1)).executeAsynchronously(captor.capture());
         Statement statement = captor.getValue();
+        assertEquals(updateQuery, statement);
+    }
+
+    @Test
+    public void shouldNotMergePatientIfPatientNotPresent() throws Exception {
+        PatientUpdate patientUpdate = PatientUpdateMother.merge("P1", "P2");
+
+        when(result.getLong("count")).thenReturn(0L);
+        when(resultSet.one()).thenReturn(result);
+        when(resultSetFuture.get()).thenReturn(resultSet);
+        Select selectQuery = getSelectQuery(patientUpdate.getHealthId());
+        when(shrQueryBuilder.findPatientQuery(anyString())).thenReturn(selectQuery);
+        when(cqlOperations.queryAsynchronously(selectQuery)).thenReturn(resultSetFuture);
+
+        Boolean patientMergeResult = new PatientRepository(cqlOperations, shrQueryBuilder)
+                .mergeIfFound(patientUpdate).toBlocking().first();
+
+        verify(shrQueryBuilder, times(1)).findPatientQuery("P1");
+        verify(shrQueryBuilder, times(0)).updatePatientQuery(patientUpdate.getHealthId(), patientUpdate.getPatientMergeChanges());
+
+        assertFalse(patientMergeResult);
+
     }
 
     private Statement getUpdateQuery() {

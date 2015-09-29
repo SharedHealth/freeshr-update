@@ -43,7 +43,7 @@ public class PatientRepository {
         }, onError(), onCompletion());
     }
 
-    public Observable<Boolean> merge(final PatientUpdate patientUpdate) {
+    public Observable<Boolean> mergeIfFound(final PatientUpdate patientUpdate) {
         final String healthId = patientUpdate.getHealthId();
         return findPatient(healthId).flatMap(new Func1<Boolean, Observable<Boolean>>() {
             @Override

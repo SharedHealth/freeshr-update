@@ -97,7 +97,7 @@ public class PatientUpdateEventWorkerTest {
 
     @Test
     public void shouldMergeIfPatientUpdateEntryIsForMerge() throws Exception {
-        when(patientRepository.merge(any(PatientUpdate.class))).thenReturn(Observable.just(true));
+        when(patientRepository.mergeIfFound(any(PatientUpdate.class))).thenReturn(Observable.just(true));
         Entry entry = new Entry();
         entry.setId(UUID.randomUUID().toString());
         entry.setTitle("foo");
@@ -107,18 +107,32 @@ public class PatientUpdateEventWorkerTest {
 
         ArgumentCaptor<PatientUpdate> captor = ArgumentCaptor.forClass(PatientUpdate.class);
 
-        verify(patientRepository, times(1)).merge(captor.capture());
+        verify(patientRepository, times(1)).mergeIfFound(captor.capture());
         PatientUpdate actualUpdateApplied = captor.getValue();
-        assertEquals("98103658541",actualUpdateApplied.getHealthId());
+        assertEquals("P1",actualUpdateApplied.getHealthId());
         assertEquals(new HashMap<String, Object>(){{
             put("active", false);
-            put("merged_with", "98103325539");
+            put("merged_with", "P2");
         }},actualUpdateApplied.getPatientMergeChanges());
 
 
         verify(encounterRepository,times(1)).applyMerge(captor.capture());
         verify(patientRepository, never()).applyUpdate(any(PatientUpdate.class));
 
+    }
+
+    @Test
+    public void shouldNotUpdateEncountersOfPatientIfPatientNotFound() throws Exception {
+        when(patientRepository.mergeIfFound(any(PatientUpdate.class))).thenReturn(Observable.just(false));
+        Entry entry = new Entry();
+        entry.setId(UUID.randomUUID().toString());
+        entry.setTitle("foo");
+        entry.setContents(genarateChangeContent("feeds/update_feed_for_merge.txt"));
+        entry.setPublished(new Date());
+        new PatientUpdateEventWorker(patientRepository, encounterRepository).process(new Event(entry));
+
+        verify(patientRepository, times(1)).mergeIfFound(any(PatientUpdate.class));
+        verify(encounterRepository,never()).applyMerge(any(PatientUpdate.class));
     }
 
     private List genarateChangeContent(String path) {
