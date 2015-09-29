@@ -36,6 +36,5 @@ public class EncounterBundle {
     public void associateTo(String healthId) {
         String inactiveHealthId = this.healthId;
         this.encounterContent = StringUtils.replace(encounterContent, inactiveHealthId, healthId);
-        this.healthId = healthId;
     }
 }

@@ -15,7 +15,7 @@ public class EncounterBundleTest {
         bundle.associateTo("P2");
 
         assertEquals("Patient P2's encounter content.\"Patient P2.json\"", bundle.getEncounterContent());
-        assertEquals("P2", bundle.getHealthId());
+        assertEquals("P1", bundle.getHealthId());
 
     }
 }

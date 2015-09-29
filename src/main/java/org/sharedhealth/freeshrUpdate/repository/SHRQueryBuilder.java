@@ -52,20 +52,20 @@ public class SHRQueryBuilder {
                 .enableTracing();
     }
 
-    public Update updateEncounterOnMergeStatement(EncounterBundle encounterBundle){
+    public Update updateEncounterOnMergeStatement(EncounterBundle encounterBundle, String healthIdToMergeWith){
         Update updateEncounter = QueryBuilder.update(configuration.getCassandraKeySpace(), ENCOUNTER_TABLE_NAME);
         updateEncounter.with(set(getEncounterContentColumnName(), encounterBundle.getEncounterContent()))
-                        .and(set(HEALTH_ID_COLUMN_NAME, encounterBundle.getHealthId()))
+                        .and(set(HEALTH_ID_COLUMN_NAME, healthIdToMergeWith))
                         .where(eq(ENCOUNTER_ID_COLUMN_NAME, encounterBundle.getEncounterId()))
                         .and(eq(RECEIVED_AT_COLUMN_NAME, TimeUuidUtil.uuidForDate(encounterBundle.getReceivedAt())));
 
         return updateEncounter;
     }
 
-    public Insert insertEncByPatientStatement(EncounterBundle encounterBundle, UUID createdAt){
+    public Insert insertEncByPatientStatement(EncounterBundle encounterBundle, UUID createdAt, String healthIdToMergeWith){
         Insert insert = QueryBuilder.insertInto(configuration.getCassandraKeySpace(), ENCOUNTER_BY_PATIENT_TABLE_NAME)
                                     .value(ENCOUNTER_ID_COLUMN_NAME, encounterBundle.getEncounterId())
-                                    .value(HEALTH_ID_COLUMN_NAME, encounterBundle.getHealthId())
+                                    .value(HEALTH_ID_COLUMN_NAME, healthIdToMergeWith)
                                     .value(CREATED_AT_COLUMN_NAME, createdAt);
 
         return insert;

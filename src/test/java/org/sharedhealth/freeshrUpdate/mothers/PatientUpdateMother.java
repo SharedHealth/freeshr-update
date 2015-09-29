@@ -24,8 +24,8 @@ public class PatientUpdateMother {
         return patientUpdate(UUID.randomUUID().toString(), UUID.randomUUID(), addressChange(addressData));
     }
 
-    public static PatientUpdate mergedWith(String healthId){
-        return patientUpdate(UUID.randomUUID().toString(), UUID.randomUUID(), mergeChange(healthId));
+    public static PatientUpdate merge(String healthId, String withHealthId){
+        return patientUpdate(healthId, UUID.randomUUID(), mergeChange(withHealthId));
     }
 
     public static PatientUpdate patientAddressUpdate(AddressData addressData) {

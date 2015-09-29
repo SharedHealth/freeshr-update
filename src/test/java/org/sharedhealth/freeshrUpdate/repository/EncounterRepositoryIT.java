@@ -15,6 +15,7 @@ import org.sharedhealth.freeshrUpdate.config.ShrUpdateConfig;
 import org.sharedhealth.freeshrUpdate.domain.AddressData;
 import org.sharedhealth.freeshrUpdate.domain.EncounterBundle;
 import org.sharedhealth.freeshrUpdate.domain.PatientUpdate;
+import org.sharedhealth.freeshrUpdate.mothers.PatientUpdateMother;
 import org.sharedhealth.freeshrUpdate.utils.KeySpaceUtils;
 import org.sharedhealth.freeshrUpdate.utils.TimeUuidUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -86,6 +87,31 @@ public class EncounterRepositoryIT {
     }
 
     @Test
+    public void shouldMergeEncountersForMergePatientUpdateFeed() throws Exception {
+        insertEncByPatient("E1", "P1", new DateTime(2015, 07, 8, 0, 0).toDate());
+        insertEncByPatient("E2", "P1", new DateTime(2015, 07, 9, 0, 0).toDate());
+        insertEncByPatient("E3", "P2", new DateTime(2015, 07, 8, 0, 0).toDate());
+
+        insertEncounter("E1", "P1", new DateTime(2015, 07, 8, 0, 0).toDate(), "e1 content for P1");
+        insertEncounter("E2", "P1", new DateTime(2015, 07, 9, 0, 0).toDate(), "e2 content for P1");
+        insertEncounter("E3", "P2", new DateTime(2015, 07, 8, 0, 0).toDate(), "e3 content for P2");
+
+        Observable<Boolean> mergeObservable = encounterRepository.applyMerge(PatientUpdateMother.merge("P2", "P1"));
+
+        mergeObservable.doOnSubscribe(new Action0() {
+            @Override
+            public void call() {
+                assertEncounterRow(fetchEncounter("E1"), "E1", "P1", "e1 content for P1", null);
+                assertEncounterRow(fetchEncounter("E2"), "E2", "P1", "e2 content for P1", null);
+                assertEncounterRow(fetchEncounter("E3"), "E3", "P1", "e3 content for P1", null);
+
+                assertEquals(fetchEncounterByPatientFeed("P1"), 3);
+                assertEquals(fetchEncounterByPatientFeed("P2"), 1);
+            }
+        });
+    }
+
+    @Test
     public void shouldAssociateAnEncounterWithNewHealthId(){
         EncounterBundle encounterBundle = new EncounterBundle("E1", "P1", "E1 content for P1", new DateTime(2015,07,8,0,0).toDate());
         insertEncounter(encounterBundle.getEncounterId(), encounterBundle.getHealthId(), encounterBundle.getReceivedAt(), encounterBundle.getEncounterContent());
@@ -94,12 +120,12 @@ public class EncounterRepositoryIT {
 
         encounterRepository.associateEncounterBundleTo(encounterBundle, "P2").toBlocking().first();
         Row encounterBundleAfterMerge = fetchEncounter("E1");
-        List<Row> encByPatient = fetchEncounterByPatientFeed();
+        List<Row> encByPatient = fetchEncounterByPatientFeed("P2");
 
         assertEncounterRow(encounterBundleAfterMerge, "E1", "P2", "E1 content for P2", null);
         assertThat(encByPatient.size(), is(1));
-        assertThat("E1", is(encByPatient.get(0).getString("encounter_id")));
-        assertThat("P2", is(encByPatient.get(0).getString("health_id")));
+        assertThat(encByPatient.get(0).getString("encounter_id"), is("E1"));
+        assertThat(encByPatient.get(0).getString("health_id"), is("P2"));
     }
 
     @Test
@@ -179,13 +205,14 @@ public class EncounterRepositoryIT {
     }
 
     private Row fetchEncounter(String encounterId) {
-        String encounterContentColumnName = queryBuilder.getEncounterContentColumnName();
         ResultSet rs = cqlOperations.query(QueryBuilder.select().all().from("freeshr", "encounter").where(eq(KeySpaceUtils.ENCOUNTER_ID_COLUMN_NAME, encounterId)).limit(1));
         return rs.all().get(0);
     }
 
-    private List<Row> fetchEncounterByPatientFeed() {
-        ResultSet rs = cqlOperations.query(QueryBuilder.select().all().from("freeshr", ENCOUNTER_BY_PATIENT_TABLE_NAME));
+    private List<Row> fetchEncounterByPatientFeed(String healthId) {
+        Select select = QueryBuilder.select().all().from("freeshr", ENCOUNTER_BY_PATIENT_TABLE_NAME);
+        select.where(eq(HEALTH_ID_COLUMN_NAME, healthId));
+        ResultSet rs = cqlOperations.query(select);
         return rs.all();
     }
 

@@ -82,6 +82,24 @@ public class EncounterRepository {
         }, onError(), onCompleted());
     }
 
+    public Observable<Boolean> applyMerge(final PatientUpdate patientUpdate){
+
+        Observable<EncounterBundle> encounterBundlesObservable = getEncounterBundles(patientUpdate.getHealthId());
+        Observable<Boolean> encounterMergeObservable = encounterBundlesObservable.flatMap(getEncountersSuccess(patientUpdate));
+
+        return encounterMergeObservable;
+    }
+
+    private Func1<EncounterBundle, Observable<Boolean>> getEncountersSuccess(final PatientUpdate patientUpdate) {
+        return new Func1<EncounterBundle, Observable<Boolean>>() {
+            @Override
+            public Observable<Boolean> call(EncounterBundle encounterBundle) {
+                return associateEncounterBundleTo(encounterBundle, (String) patientUpdate.getPatientMergeChanges().get(MERGED_WITH_COLUMN_NAME));
+            }
+        };
+    }
+
+
     public Observable<EncounterBundle> getEncounterBundles(String healthId){
         Observable<List<String>> encounterIdsForPatient = getEncounterIdsForPatient(healthId);
         return encounterIdsForPatient.flatMap(new Func1<List<String>, Observable<EncounterBundle>>() {
@@ -112,8 +130,8 @@ public class EncounterRepository {
         encounterBundle.associateTo(healthIdToMergeWith);
 
         UUID createdAt = TimeUuidUtil.uuidForDate(new Date());
-        Update updateEncounterStmt = shrQueryBuilder.updateEncounterOnMergeStatement(encounterBundle);
-        Insert insertEncByPatientStatement = shrQueryBuilder.insertEncByPatientStatement(encounterBundle, createdAt);
+        Update updateEncounterStmt = shrQueryBuilder.updateEncounterOnMergeStatement(encounterBundle, healthIdToMergeWith);
+        Insert insertEncByPatientStatement = shrQueryBuilder.insertEncByPatientStatement(encounterBundle, createdAt, healthIdToMergeWith);
 
         Batch batch = QueryBuilder.batch(updateEncounterStmt, insertEncByPatientStatement);
 

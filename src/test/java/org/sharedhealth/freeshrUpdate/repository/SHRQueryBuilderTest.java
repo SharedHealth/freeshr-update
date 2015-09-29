@@ -196,7 +196,7 @@ public class SHRQueryBuilderTest {
     @Test
     public void shouldCreateUpdatePatientQueryOnMerge() throws Exception {
         when(configuration.getCassandraKeySpace()).thenReturn("keyspace");
-        PatientUpdate patientUpdate = PatientUpdateMother.mergedWith("12345");
+        PatientUpdate patientUpdate = PatientUpdateMother.merge("some health id", "12345");
         Date receivedDate = new Date();
         receivedDate.setTime(12345);
 
@@ -217,9 +217,9 @@ public class SHRQueryBuilderTest {
 
         EncounterBundle encounterBundle = new EncounterBundle("E1", "P1", "E1 content", receivedAt);
 
-        Statement updateEncStatement = new SHRQueryBuilder(configuration).updateEncounterOnMergeStatement(encounterBundle);
+        Statement updateEncStatement = new SHRQueryBuilder(configuration).updateEncounterOnMergeStatement(encounterBundle, "P2");
         String expectedQuery = String.format("UPDATE keyspace.%s SET content_v1='%s',health_id='%s' WHERE encounter_id='%s' AND received_at=%s;",
-                ENCOUNTER_TABLE_NAME,encounterBundle.getEncounterContent(),encounterBundle.getHealthId(),encounterBundle.getEncounterId(), uuid);
+                ENCOUNTER_TABLE_NAME,encounterBundle.getEncounterContent(),"P2",encounterBundle.getEncounterId(), uuid);
 
         assertEquals(expectedQuery, updateEncStatement.toString());
 
@@ -233,10 +233,10 @@ public class SHRQueryBuilderTest {
 
         EncounterBundle encounterBundle = new EncounterBundle("E1", "P1", "E1 content", null);
 
-        Statement insert = new SHRQueryBuilder(configuration).insertEncByPatientStatement(encounterBundle, uuid);
+        Statement insert = new SHRQueryBuilder(configuration).insertEncByPatientStatement(encounterBundle, uuid, "P2");
         String expectedQuery = String.format("INSERT INTO keyspace.%s(%s,%s,%s) VALUES ('%s','%s',%s);",
                             ENCOUNTER_BY_PATIENT_TABLE_NAME, ENCOUNTER_ID_COLUMN_NAME, HEALTH_ID_COLUMN_NAME, CREATED_AT_COLUMN_NAME,
-                            encounterBundle.getEncounterId(), encounterBundle.getHealthId(), uuid);
+                            encounterBundle.getEncounterId(), "P2", uuid);
 
         assertEquals(expectedQuery, insert.toString());
 
