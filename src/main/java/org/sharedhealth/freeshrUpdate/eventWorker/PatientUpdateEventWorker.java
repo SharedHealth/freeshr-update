@@ -43,7 +43,7 @@ public class PatientUpdateEventWorker implements EventWorker {
                 merge(patientUpdate);
             else if(patientUpdate.hasPatientDetailChanges())
                 applyUpdate(patientUpdate);
-        } catch (IOException e) {
+        } catch (Exception e) {
             LOG.error(e.getMessage());
         }
     }
