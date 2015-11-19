@@ -37,10 +37,10 @@ public class ShrUpdateConfiguration {
     @Value("${FHIR_DOCUMENT_SCHEMA_VERSION}")
     private String fhirDocumentSchemaVersion;
 
-    @Value("${UPDATE_INTERVAL_SECONDS}")
+    @Value("${PATIENT_UPDATE_READ_INTERVAL}")
     private String updateIntervalInSeconds;
 
-    @Value("${RETRY_UPDATE_INTERVAL_SECONDS}")
+    @Value("${PATIENT_UPDATE_RETRY_INTERVAL}")
     private String retryUpdateIntervalInSeconds;
 
     @Value("${IDP_SERVER_LOGIN_URL}")
