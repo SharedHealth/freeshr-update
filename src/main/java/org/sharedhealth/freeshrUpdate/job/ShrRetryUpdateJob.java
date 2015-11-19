@@ -19,7 +19,7 @@ public class ShrRetryUpdateJob {
 
     private static final Logger LOG = LoggerFactory.getLogger(ShrRetryUpdateJob.class);
 
-    @Scheduled(fixedDelayString = "${RETRY_UPDATE_INTERVAL_SECONDS}", initialDelay = 10000)
+    @Scheduled(fixedDelayString = "${PATIENT_UPDATE_RETRY_INTERVAL}", initialDelay = 10000)
     public void start() {
         try {
             mciFeedProcessor.pullFailedEvents();

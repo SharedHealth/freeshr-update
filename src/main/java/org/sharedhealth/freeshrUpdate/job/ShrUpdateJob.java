@@ -19,7 +19,7 @@ public class ShrUpdateJob {
 
     private static final Logger LOG = LoggerFactory.getLogger(ShrUpdateJob.class);
 
-    @Scheduled(fixedDelayString = "${UPDATE_INTERVAL_SECONDS}", initialDelay = 10000)
+    @Scheduled(fixedDelayString = "${PATIENT_UPDATE_READ_INTERVAL}", initialDelay = 10000)
     public void start() {
         try {
             mciFeedProcessor.pullLatest();
