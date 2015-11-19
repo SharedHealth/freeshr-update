@@ -3,35 +3,36 @@ package org.sharedhealth.freeshrUpdate.atomFeed;
 import org.ict4h.atomfeed.client.AtomFeedProperties;
 import org.ict4h.atomfeed.client.repository.AllFailedEvents;
 import org.ict4h.atomfeed.client.repository.AllMarkers;
+import org.ict4h.atomfeed.client.repository.jdbc.AllFailedEventsJdbcImpl;
+import org.ict4h.atomfeed.client.repository.jdbc.AllMarkersJdbcImpl;
 import org.ict4h.atomfeed.client.service.AtomFeedClient;
 import org.ict4h.atomfeed.client.service.EventWorker;
 import org.sharedhealth.freeshrUpdate.client.MciWebClient;
+import org.sharedhealth.freeshrUpdate.config.ShrUpdateConfiguration;
 import org.sharedhealth.freeshrUpdate.eventWorker.PatientUpdateEventWorker;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.net.URI;
 
+@Component
 public class MciFeedProcessor {
-    private final URI feedUrl;
     private final AllMarkers markers;
     private final AllFailedEvents failedEvents;
     private final AtomFeedSpringTransactionManager transactionManager;
+    private MciWebClient mciWebClient;
+    private PatientUpdateEventWorker patientUpdateEventWorker;
+    private ShrUpdateConfiguration shrUpdateConfiguration;
+
 
     @Autowired
-    private final MciWebClient mciWebClient;
-    @Autowired
-    private final PatientUpdateEventWorker patientUpdateEventWorker;
-
-
-    public MciFeedProcessor(URI feedUrl,
-                            AllMarkers markers,
-                            AllFailedEvents failedEvents,
-                            AtomFeedSpringTransactionManager transactionManager,
+    public MciFeedProcessor(AtomFeedSpringTransactionManager transactionManager,
                             MciWebClient mciWebClient,
-                            PatientUpdateEventWorker patientUpdateEventWorker) {
-        this.feedUrl = feedUrl;
-        this.markers = markers;
-        this.failedEvents = failedEvents;
+                            PatientUpdateEventWorker patientUpdateEventWorker,
+                            ShrUpdateConfiguration shrUpdateConfiguration) {
+        this.shrUpdateConfiguration = shrUpdateConfiguration;
+        this.markers = new AllMarkersJdbcImpl(transactionManager);
+        this.failedEvents = new AllFailedEventsJdbcImpl(transactionManager);
         this.transactionManager = transactionManager;
         this.mciWebClient = mciWebClient;
         this.patientUpdateEventWorker = patientUpdateEventWorker;
@@ -40,7 +41,7 @@ public class MciFeedProcessor {
     public void pullLatest() {
         AtomFeedProperties atomProperties = new AtomFeedProperties();
         atomProperties.setMaxFailedEvents(20);
-        AtomFeedClient atomFeedClient = atomFeedClient(this.feedUrl,
+        AtomFeedClient atomFeedClient = atomFeedClient(this.shrUpdateConfiguration.getMciPatientUpdateFeedUrl(),
                 patientUpdateEventWorker,
                 atomProperties);
         atomFeedClient.processEvents();
@@ -49,7 +50,7 @@ public class MciFeedProcessor {
     public void pullFailedEvents() {
         AtomFeedProperties atomProperties = new AtomFeedProperties();
         atomProperties.setMaxFailedEvents(20);
-        AtomFeedClient atomFeedClient = atomFeedClient(this.feedUrl,
+        AtomFeedClient atomFeedClient = atomFeedClient(this.shrUpdateConfiguration.getMciPatientUpdateFeedUrl(),
                 patientUpdateEventWorker,
                 atomProperties);
         atomFeedClient.processFailedEvents();

@@ -3,8 +3,10 @@ package org.sharedhealth.freeshrUpdate.atomFeed;
 import org.ict4h.atomfeed.jdbc.JdbcConnectionProvider;
 import org.ict4h.atomfeed.transaction.AFTransactionManager;
 import org.ict4h.atomfeed.transaction.AFTransactionWork;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.DataSourceUtils;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
@@ -15,10 +17,12 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
+@Component
 public class AtomFeedSpringTransactionManager implements AFTransactionManager, JdbcConnectionProvider {
     private DataSourceTransactionManager transactionManager;
     private Map<AFTransactionWork.PropagationDefinition, Integer> propagationMap = new HashMap<>();
 
+    @Autowired
     public AtomFeedSpringTransactionManager(DataSourceTransactionManager transactionManager) {
         this.transactionManager = transactionManager;
         propagationMap.put(AFTransactionWork.PropagationDefinition.PROPAGATION_REQUIRED, TransactionDefinition

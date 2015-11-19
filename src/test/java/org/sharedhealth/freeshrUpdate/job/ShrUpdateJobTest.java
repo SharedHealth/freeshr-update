@@ -1,4 +1,4 @@
-package org.sharedhealth.freeshrUpdate.schedule;
+package org.sharedhealth.freeshrUpdate.job;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -8,7 +8,7 @@ import org.sharedhealth.freeshrUpdate.atomFeed.MciFeedProcessor;
 import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-public class ShrUpdateActionTest {
+public class ShrUpdateJobTest {
 
     @Mock
     MciFeedProcessor mciFeedProcessor;
@@ -20,7 +20,7 @@ public class ShrUpdateActionTest {
 
     @Test
     public void shouldRunUpdate() throws Exception {
-        new ShrUpdateAction(mciFeedProcessor).onNext(1L);
+        new ShrUpdateJob(mciFeedProcessor).start();
         verify(mciFeedProcessor).pullLatest();
 
     }
