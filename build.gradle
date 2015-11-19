@@ -35,9 +35,8 @@ configurations.all {
 ext.libraries = [
         spring_framework     : "org.springframework:spring-core:4.1.1.RELEASE",
         spring_boot_logging  : "org.springframework.boot:spring-boot-starter-log4j:1.1.1.RELEASE",
-        quartz_scheduler     : "org.quartz-scheduler:quartz:2.2.1",
-        atomfeed_client      : "org.ict4h:atomfeed-client:1.2",
-        atomfeed_commons     : "org.ict4h:atomfeed-commons:1.2",
+        atomfeed_client      : "org.ict4h:atomfeed-client:1.9.0",
+        atomfeed_commons     : "org.ict4h:atomfeed-commons:1.9.0",
         rome                 : "rome:rome:1.0",
         time_uuid            : "com.eaio.uuid:uuid:3.2",
         apache_httpclient    : "org.apache.httpcomponents:httpclient:4.3.5",
