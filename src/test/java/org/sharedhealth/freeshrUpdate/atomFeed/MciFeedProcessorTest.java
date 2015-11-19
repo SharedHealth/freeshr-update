@@ -1,8 +1,6 @@
 package org.sharedhealth.freeshrUpdate.atomFeed;
 
 import org.ict4h.atomfeed.client.domain.Event;
-import org.ict4h.atomfeed.client.repository.jdbc.AllFailedEventsJdbcImpl;
-import org.ict4h.atomfeed.client.repository.jdbc.AllMarkersJdbcImpl;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -22,7 +20,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import java.net.URI;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
-import java.util.HashMap;
 
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -38,9 +35,10 @@ public class MciFeedProcessorTest {
     private MciWebClient mciWebClient;
     @Mock
     private PatientUpdateEventWorker patientUpdateEventWorker;
-
     @Autowired
     DataSourceTransactionManager txMgr;
+    @Mock
+    ShrUpdateConfiguration shrUpdateConfiguration;
 
     @Before
     public void setUp() throws Exception {
@@ -49,20 +47,16 @@ public class MciFeedProcessorTest {
 
     @Test
     public void shouldProcessFeedsFirstTime() throws Exception {
-        HashMap<String, String> headers = new HashMap<>();
         URI feedUri = URI.create("foo");
-        URI nextUri = URI.create(
-                "http://127.0.0.1:9997/api/v1/feed/patients?last_marker=32782f90-a843-11e4-ad63-6d5f88e0f020");
+        URI nextUri = URI.create("http://127.0.0.1:9997/api/v1/feed/patients?last_marker=32782f90-a843-11e4-ad63-6d5f88e0f020");
+
+        when(shrUpdateConfiguration.getMciPatientUpdateFeedUrl()).thenReturn(feedUri);
         when(mciWebClient.get(feedUri)).thenReturn(asString("feeds/patientUpdatesFeed.xml"));
         when(mciWebClient.get(nextUri)).thenReturn(asString("feeds/emptyFeed.xml"));
 
         AtomFeedSpringTransactionManager transactionManager = new AtomFeedSpringTransactionManager(txMgr);
 
-        MciFeedProcessor mciFeedProcessor = new MciFeedProcessor(feedUri,
-                new AllMarkersJdbcImpl(transactionManager),
-                new AllFailedEventsJdbcImpl(transactionManager)
-                , transactionManager,
-                mciWebClient, patientUpdateEventWorker);
+        MciFeedProcessor mciFeedProcessor = new MciFeedProcessor(transactionManager, mciWebClient, patientUpdateEventWorker, shrUpdateConfiguration);
         mciFeedProcessor.pullLatest();
 
         verify(mciWebClient, times(1)).get(feedUri);

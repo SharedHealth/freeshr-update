@@ -13,8 +13,8 @@ public class ShrUpdateConfiguration {
     @Value("${MCI_SERVER_URL}")
     private String mciServerUrl;
 
-    @Value("${MCI_CONTEXT_PATH}")
-    private String mciContextPath;
+    @Value("${PATIENT_UPDATE_FEED_CONTEXT_PATH}")
+    private String patientUpdateFeedContextPath;
 
     @Value("${CASSANDRA_KEYSPACE}")
     private String cassandraKeySpace;
@@ -112,8 +112,8 @@ public class ShrUpdateConfiguration {
         return Integer.parseInt(retryUpdateIntervalInSeconds);
     }
 
-    public URI getMciBaseUrl() {
-        return URI.create(mciServerUrl + mciContextPath);
+    public URI getMciPatientUpdateFeedUrl() {
+        return URI.create(mciServerUrl + patientUpdateFeedContextPath);
     }
 
     public String getDbUrl() {
