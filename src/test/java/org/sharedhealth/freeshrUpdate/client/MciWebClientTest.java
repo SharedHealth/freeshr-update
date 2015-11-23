@@ -8,22 +8,17 @@ import org.mockito.Mock;
 import org.sharedhealth.freeshrUpdate.config.ShrUpdateConfiguration;
 import org.sharedhealth.freeshrUpdate.identity.IdentityServiceClient;
 import org.sharedhealth.freeshrUpdate.identity.IdentityToken;
-import org.sharedhealth.freeshrUpdate.utils.Headers;
 
 import java.net.URI;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.sharedhealth.freeshrUpdate.helpers.ResourceHelper.asString;
-import static org.sharedhealth.freeshrUpdate.utils.Headers.CLIENT_ID_KEY;
-import static org.sharedhealth.freeshrUpdate.utils.Headers.FROM_KEY;
-import static org.sharedhealth.freeshrUpdate.utils.Headers.X_AUTH_TOKEN_KEY;
+import static org.sharedhealth.freeshrUpdate.utils.Headers.*;
 
 public class MciWebClientTest {
 
@@ -62,8 +57,7 @@ public class MciWebClientTest {
                         .withStatus(200)
                         .withBody(body)));
 
-        String response = mciWebClient.get(URI.create
-                ("http://localhost:9997/api/v1/feed/patients?last_marker=foo"));
+        String response = mciWebClient.get(URI.create("http://localhost:9997/api/v1/feed/patients?last_marker=foo"));
         assertNotNull(response);
         assertEquals(response, body);
     }

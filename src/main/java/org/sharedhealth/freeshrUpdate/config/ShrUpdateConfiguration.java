@@ -1,5 +1,6 @@
 package org.sharedhealth.freeshrUpdate.config;
 
+import org.sharedhealth.freeshrUpdate.utils.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,6 +16,9 @@ public class ShrUpdateConfiguration {
 
     @Value("${PATIENT_UPDATE_FEED_CONTEXT_PATH}")
     private String patientUpdateFeedContextPath;
+
+    @Value("${PATIENT_CONTEXT_PATH}")
+    private String mciPatientContextPath;
 
     @Value("${CASSANDRA_KEYSPACE}")
     private String cassandraKeySpace;
@@ -114,6 +118,10 @@ public class ShrUpdateConfiguration {
 
     public URI getMciPatientUpdateFeedUrl() {
         return URI.create(mciServerUrl + patientUpdateFeedContextPath);
+    }
+
+    public URI getMciPatientPath(String healthId) {
+        return URI.create(StringUtils.ensureSuffix(mciServerUrl + mciPatientContextPath, "/") + healthId);
     }
 
     public String getDbUrl() {

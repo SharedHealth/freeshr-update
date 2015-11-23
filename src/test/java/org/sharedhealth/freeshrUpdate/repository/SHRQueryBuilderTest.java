@@ -5,7 +5,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.sharedhealth.freeshrUpdate.config.ShrUpdateConfiguration;
-import org.sharedhealth.freeshrUpdate.domain.AddressData;
+import org.sharedhealth.freeshrUpdate.domain.Address;
 import org.sharedhealth.freeshrUpdate.domain.EncounterBundle;
 import org.sharedhealth.freeshrUpdate.domain.PatientUpdate;
 import org.sharedhealth.freeshrUpdate.mothers.PatientUpdateMother;
@@ -93,9 +93,9 @@ public class SHRQueryBuilderTest {
     @Test
     public void shouldCreateUpdateQueryForDivisionId() throws Exception {
         when(configuration.getCassandraKeySpace()).thenReturn("keyspace");
-        AddressData addressData = new AddressData();
-        addressData.setDivisionId("foo");
-        PatientUpdate patientUpdate = PatientUpdateMother.patientAddressUpdate(addressData);
+        Address address = new Address();
+        address.setDivisionId("foo");
+        PatientUpdate patientUpdate = PatientUpdateMother.patientAddressUpdate(address);
         Statement update = new SHRQueryBuilder(configuration).updatePatientQuery(patientUpdate.getHealthId(), patientUpdate.getPatientDetailChanges());
         assertTrue(update.toString().contains(String.format("SET %s='foo'", DIVISION_ID_COLUMN_NAME)));
     }
@@ -103,9 +103,9 @@ public class SHRQueryBuilderTest {
     @Test
     public void shouldCreateUpdateQueryForDistrictId() throws Exception {
         when(configuration.getCassandraKeySpace()).thenReturn("keyspace");
-        AddressData addressData = new AddressData();
-        addressData.setDistrictId("foo");
-        PatientUpdate patientUpdate = PatientUpdateMother.patientAddressUpdate(addressData);
+        Address address = new Address();
+        address.setDistrictId("foo");
+        PatientUpdate patientUpdate = PatientUpdateMother.patientAddressUpdate(address);
         Statement update = new SHRQueryBuilder(configuration).updatePatientQuery(patientUpdate.getHealthId(), patientUpdate.getPatientDetailChanges());
         assertTrue(update.toString().contains(String.format("SET %s='foo'", DISTRICT_ID_COLUMN_NAME)));
     }
@@ -113,9 +113,9 @@ public class SHRQueryBuilderTest {
     @Test
     public void shouldCreateUpdateQueryForUpazilaId() throws Exception {
         when(configuration.getCassandraKeySpace()).thenReturn("keyspace");
-        AddressData addressData = new AddressData();
-        addressData.setUpazilaId("foo");
-        PatientUpdate patientUpdate = PatientUpdateMother.patientAddressUpdate(addressData);
+        Address address = new Address();
+        address.setUpazilaId("foo");
+        PatientUpdate patientUpdate = PatientUpdateMother.patientAddressUpdate(address);
         Statement update = new SHRQueryBuilder(configuration).updatePatientQuery(patientUpdate.getHealthId(), patientUpdate.getPatientDetailChanges());
         assertTrue(update.toString().contains(String.format("SET %s='foo'", UPAZILA_ID_COLUMN_NAME)));
     }
@@ -123,9 +123,9 @@ public class SHRQueryBuilderTest {
     @Test
     public void shouldCreateUpdateQueryForCityCorporationId() throws Exception {
         when(configuration.getCassandraKeySpace()).thenReturn("keyspace");
-        AddressData addressData = new AddressData();
-        addressData.setCityCorporationId("foo");
-        PatientUpdate patientUpdate = PatientUpdateMother.patientAddressUpdate(addressData);
+        Address address = new Address();
+        address.setCityCorporationId("foo");
+        PatientUpdate patientUpdate = PatientUpdateMother.patientAddressUpdate(address);
         Statement update = new SHRQueryBuilder(configuration).updatePatientQuery(patientUpdate.getHealthId(), patientUpdate.getPatientDetailChanges());
         assertTrue(update.toString().contains(String.format("SET %s='foo'", CITY_CORPORATION_ID_COLUMN_NAME)));
     }
@@ -133,9 +133,9 @@ public class SHRQueryBuilderTest {
     @Test
     public void shouldCreateUpdateQueryForWardId() throws Exception {
         when(configuration.getCassandraKeySpace()).thenReturn("keyspace");
-        AddressData addressData = new AddressData();
-        addressData.setUnionOrUrbanWardId("foo");
-        PatientUpdate patientUpdate = PatientUpdateMother.patientAddressUpdate(addressData);
+        Address address = new Address();
+        address.setUnionOrUrbanWardId("foo");
+        PatientUpdate patientUpdate = PatientUpdateMother.patientAddressUpdate(address);
         Statement update = new SHRQueryBuilder(configuration).updatePatientQuery(patientUpdate.getHealthId(), patientUpdate.getPatientDetailChanges());
         assertTrue(update.toString().contains(String.format("SET %s='foo'", UNION_OR_URBAN_COLUMN_NAME)));
     }

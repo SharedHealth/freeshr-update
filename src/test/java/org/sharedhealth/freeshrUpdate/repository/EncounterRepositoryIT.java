@@ -12,7 +12,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.sharedhealth.freeshrUpdate.config.SHREnvironmentMock;
 import org.sharedhealth.freeshrUpdate.config.ShrUpdateConfig;
-import org.sharedhealth.freeshrUpdate.domain.AddressData;
+import org.sharedhealth.freeshrUpdate.domain.Address;
 import org.sharedhealth.freeshrUpdate.domain.EncounterBundle;
 import org.sharedhealth.freeshrUpdate.domain.PatientUpdate;
 import org.sharedhealth.freeshrUpdate.mothers.PatientUpdateMother;
@@ -153,12 +153,12 @@ public class EncounterRepositoryIT {
 
     @Test
     public void shouldAddEntriesToCatchmentFeedForAddressChange() throws Exception {
-        AddressData addressData = new AddressData();
-        addressData.setDivisionId("30");
-        addressData.setDistrictId("26");
-        addressData.setUpazilaId("18");
-        addressData.setCityCorporationId("60");
-        addressData.setUnionOrUrbanWardId("45");
+        Address address = new Address();
+        address.setDivisionId("30");
+        address.setDistrictId("26");
+        address.setUpazilaId("18");
+        address.setCityCorporationId("60");
+        address.setUnionOrUrbanWardId("45");
 
         insertEncounter("E1", "P1", new DateTime(2015, 07, 8, 0, 0).toDate(), "e1 content");
         insertEncounter("E2", "P1", new DateTime(2015, 07, 9, 0, 0).toDate(), "e2 content");
@@ -176,7 +176,7 @@ public class EncounterRepositoryIT {
         assertThat(fetchCatchmentFeed("30","3026").size(), is(0));
 
         PatientUpdate patientUpdate = new PatientUpdate();
-        patientUpdate.setChangeSetMap(addressChange(addressData));
+        patientUpdate.setChangeSetMap(addressChange(address));
         patientUpdate.setHealthId("P1");
 
         Observable<Boolean> updateObservable = encounterRepository.applyUpdate(patientUpdate);
@@ -259,5 +259,6 @@ public class EncounterRepositoryIT {
         cqlOperations.execute("truncate encounter");
         cqlOperations.execute("truncate enc_by_catchment");
         cqlOperations.execute("truncate enc_by_patient");
+        cqlOperations.execute("truncate patient");
     }
 }

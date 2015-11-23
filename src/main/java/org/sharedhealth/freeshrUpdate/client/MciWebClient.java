@@ -43,4 +43,9 @@ public class MciWebClient {
         return response;
     }
 
+    public String getPatient(String healthId) throws IOException, URISyntaxException {
+        return get(properties.getMciPatientPath(healthId));
+    }
+
+
 }

@@ -4,33 +4,33 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class AddressChange {
     @JsonProperty("old_value")
-    private AddressData oldValue = new AddressData();
+    private Address oldValue = new Address();
 
     @JsonProperty("new_value")
-    private AddressData newValue = new AddressData();
+    private Address newValue = new Address();
 
     public AddressChange() {
 
     }
 
-    public AddressChange(AddressData oldValue, AddressData newValue) {
+    public AddressChange(Address oldValue, Address newValue) {
         this.oldValue = oldValue;
         this.newValue = newValue;
     }
 
-    public void setOldValue(AddressData oldValue) {
+    public void setOldValue(Address oldValue) {
         this.oldValue = oldValue;
     }
 
-    public AddressData getOldValue() {
+    public Address getOldValue() {
         return oldValue;
     }
 
-    public void setNewValue(AddressData newValue) {
+    public void setNewValue(Address newValue) {
         this.newValue = newValue;
     }
 
-    public AddressData getNewValue() {
+    public Address getNewValue() {
         return newValue;
     }
 

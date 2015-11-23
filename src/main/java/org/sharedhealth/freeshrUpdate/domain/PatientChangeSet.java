@@ -12,7 +12,7 @@ import java.util.Map;
 import static org.sharedhealth.freeshrUpdate.utils.KeySpaceUtils.*;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class PatientData {
+public class PatientChangeSet {
 
     @JsonProperty("confidential")
     private Change confidentialChange = new Change();
@@ -29,7 +29,7 @@ public class PatientData {
     @JsonProperty("present_address")
     private AddressChange addressChange = new AddressChange();
 
-    public AddressData getAddressChange() {
+    public Address getAddressChange() {
         return addressChange.getNewValue();
     }
 

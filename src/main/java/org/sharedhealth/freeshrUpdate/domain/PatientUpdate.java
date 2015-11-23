@@ -19,7 +19,7 @@ public class PatientUpdate {
     private String healthId;
 
     @JsonProperty("change_set")
-    private PatientData changeSetMap = new PatientData();
+    private PatientChangeSet changeSetMap = new PatientChangeSet();
 
     @JsonProperty("eventTime")
     private Date eventTime;
@@ -36,7 +36,7 @@ public class PatientUpdate {
         return healthId;
     }
 
-    public PatientData getChangeSet() {
+    public PatientChangeSet getChangeSet() {
         return changeSetMap;
     }
 
@@ -56,7 +56,7 @@ public class PatientUpdate {
         this.healthId = healthId;
     }
 
-    public void setChangeSetMap(PatientData changeSetMap) {
+    public void setChangeSetMap(PatientChangeSet changeSetMap) {
         this.changeSetMap = changeSetMap;
     }
 

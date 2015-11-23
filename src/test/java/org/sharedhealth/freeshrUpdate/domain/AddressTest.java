@@ -5,17 +5,17 @@ import org.junit.Test;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-public class AddressDataTest  {
+public class AddressTest {
 
     @Test
     public void shouldCheckIfAddressDataIsEmpty(){
-        AddressData emptyAddress = new AddressData();
+        Address emptyAddress = new Address();
         assertTrue(emptyAddress.isEmpty());
     }
 
     @Test
     public void shouldCheckIfAddressDataIsNotEmpty(){
-        AddressData someAddress = new AddressData();
+        Address someAddress = new Address();
         someAddress.setAddressLine("No 65");
         assertFalse(someAddress.isEmpty());
     }

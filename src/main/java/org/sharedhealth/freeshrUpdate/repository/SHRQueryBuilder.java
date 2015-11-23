@@ -7,7 +7,7 @@ import com.datastax.driver.core.querybuilder.Select;
 import com.datastax.driver.core.querybuilder.Update;
 import org.apache.commons.lang3.StringUtils;
 import org.sharedhealth.freeshrUpdate.config.ShrUpdateConfiguration;
-import org.sharedhealth.freeshrUpdate.domain.AddressData;
+import org.sharedhealth.freeshrUpdate.domain.Address;
 import org.sharedhealth.freeshrUpdate.domain.EncounterBundle;
 import org.sharedhealth.freeshrUpdate.domain.PatientUpdate;
 import org.sharedhealth.freeshrUpdate.utils.TimeUuidUtil;
@@ -103,7 +103,7 @@ public class SHRQueryBuilder {
     }
 
     public Statement insertCatchmentFeedForAddressChange(PatientUpdate patientUpdate, EncounterDetail encounterDetail){
-        AddressData addressChange = patientUpdate.getChangeSet().getAddressChange();
+        Address addressChange = patientUpdate.getChangeSet().getAddressChange();
         UUID createdAt = TimeUuidUtil.uuidForDate(new Date());
 
         Insert insertEncByCatchmentStmt = QueryBuilder.insertInto(configuration.getCassandraKeySpace(), ENCOUNTER_BY_CATCHMENT_TABLE_NAME)

@@ -1,6 +1,10 @@
 package org.sharedhealth.freeshrUpdate.repository;
 
 import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.querybuilder.Insert;
+import com.datastax.driver.core.querybuilder.QueryBuilder;
+import org.sharedhealth.freeshrUpdate.domain.Address;
+import org.sharedhealth.freeshrUpdate.domain.Patient;
 import org.sharedhealth.freeshrUpdate.domain.PatientUpdate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,6 +15,7 @@ import org.springframework.stereotype.Component;
 import rx.Observable;
 import rx.functions.Func0;
 import rx.functions.Func1;
+import rx.schedulers.Schedulers;
 
 import java.util.Map;
 
@@ -54,7 +59,7 @@ public class PatientRepository {
         }, onError(), onCompletion());
     }
 
-    private Observable<Boolean> findPatient(final String healthId) {
+    public Observable<Boolean> findPatient(final String healthId) {
         Observable<ResultSet> observable = Observable.from(
                 cqlOperations.queryAsynchronously(shrQueryBuilder.findPatientQuery(healthId))
         );
@@ -77,6 +82,34 @@ public class PatientRepository {
                 return Observable.just(true);
             }
         }, onError(), onCompletion()).firstOrDefault(false);
+    }
+
+    public Observable<Boolean> save(Patient patient) {
+        if(patient.getHealthId() != null){
+            Observable<ResultSet> saveObservable = Observable.from(cqlOperations.executeAsynchronously(buildPatientInsertQuery(patient)), Schedulers.io());
+            return saveObservable.flatMap(RxMaps.respondOnNext(true), RxMaps.<Boolean>logAndForwardError(LOG),
+                    RxMaps.completeResponds(true));
+        }
+        return Observable.just(false);
+    }
+
+    private Insert buildPatientInsertQuery(Patient patient) {
+        Address address = patient.getAddress();
+        Insert insert = QueryBuilder.insertInto("patient")
+                .value("health_id", patient.getHealthId())
+                .value("merged_with", patient.getMergedWith())
+                .value("active", patient.isActive());
+        if(patient.getMergedWith() == null) {
+            insert.value("gender", patient.getGender())
+                    .value("address_line", address.getAddressLine())
+                    .value("division_id", address.getDivisionId())
+                    .value("district_id", address.getDistrictId())
+                    .value("upazila_id", address.getUpazilaId())
+                    .value("city_corporation_id", address.getCityCorporationId())
+                    .value("union_urban_ward_id", address.getUnionOrUrbanWardId())
+                    .value("confidentiality", patient.getConfidentiality().getLevel());
+        }
+        return insert;
     }
 
 
