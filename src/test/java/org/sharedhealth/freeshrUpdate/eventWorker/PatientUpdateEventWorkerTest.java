@@ -19,6 +19,7 @@ import org.sharedhealth.freeshrUpdate.utils.FileUtil;
 import org.sharedhealth.freeshrUpdate.utils.StringUtils;
 import rx.Observable;
 
+import java.io.IOException;
 import java.util.*;
 
 import static org.junit.Assert.assertEquals;
@@ -121,11 +122,11 @@ public class PatientUpdateEventWorkerTest {
 
         verify(patientRepository, times(1)).mergeIfFound(captor.capture());
         PatientUpdate actualUpdateApplied = captor.getValue();
-        assertEquals("P1",actualUpdateApplied.getHealthId());
-        assertEquals(new HashMap<String, Object>(){{
+        assertEquals("P1", actualUpdateApplied.getHealthId());
+        assertEquals(new HashMap<String, Object>() {{
             put("active", false);
             put("merged_with", "P2");
-        }},actualUpdateApplied.getPatientMergeChanges());
+        }}, actualUpdateApplied.getPatientMergeChanges());
 
 
         verify(encounterRepository,times(1)).applyMerge(captor.capture());
@@ -172,11 +173,7 @@ public class PatientUpdateEventWorkerTest {
 
         verify(patientRepository, times(1)).mergeIfFound(captor.capture());
         PatientUpdate actualUpdateApplied = captor.getValue();
-        assertEquals("P1",actualUpdateApplied.getHealthId());
-        assertEquals(new HashMap<String, Object>(){{
-            put("active", false);
-            put("merged_with", "P2");
-        }},actualUpdateApplied.getPatientMergeChanges());
+        assertEquals("P1", actualUpdateApplied.getHealthId());
 
         verify(mciWebClient, times(1)).getPatient("P2");
 
@@ -184,14 +181,72 @@ public class PatientUpdateEventWorkerTest {
         verify(patientRepository, times(1)).save(patientCaptor.capture());
         assertEquals(patientCaptor.getValue(), StringUtils.readFrom(FileUtil.asString("patients/p2.json"), Patient.class));
 
-        verify(encounterRepository, times(1)).applyMerge(captor.capture());
-        verify(patientRepository, never()).applyUpdate(any(PatientUpdate.class));
+        verify(encounterRepository, times(1)).applyMerge(eq(actualUpdateApplied));
 
     }
 
 
-    //Test case: MCI patient download fails
-    //Test case: Patient save on local fails
+    @Test
+    public void shouldNotProcessEncountersIfDownloadOfPatientToBeMergedWithFails() throws Exception {
+        //P1 merged with P2
+        //P1 present on SHR
+        //P2 not present locally.Encounters are not updated when downloading of P2 fails
+
+        when(patientRepository.mergeIfFound(any(PatientUpdate.class))).thenReturn(Observable.just(true));
+        when(patientRepository.findPatient("P2")).thenReturn(Observable.just(false));
+        when(mciWebClient.getPatient("P2")).thenThrow(new IOException());
+
+        Entry entry = new Entry();
+        entry.setId(UUID.randomUUID().toString());
+        entry.setTitle("foo");
+        entry.setContents(genarateChangeContent("feeds/update_feed_for_merge.txt"));
+        entry.setPublished(new Date());
+        patientUpdateEventWorker.process(new Event(entry));
+
+        ArgumentCaptor<PatientUpdate> captor = ArgumentCaptor.forClass(PatientUpdate.class);
+        verify(patientRepository, times(1)).mergeIfFound(captor.capture());
+        PatientUpdate actualUpdateApplied = captor.getValue();
+        assertEquals("P1", actualUpdateApplied.getHealthId());
+
+        verify(mciWebClient, times(1)).getPatient("P2");
+        verify(patientRepository, never()).save(any(Patient.class));
+        verify(encounterRepository, never()).applyMerge(any(PatientUpdate.class));
+    }
+
+
+    @Test
+    public void shouldNotProcessEncountersIfSaveOfPatientToBeMergedWithFails() throws Exception {
+        //P1 merged with P2
+        //P1 present on SHR
+        //P2 not present locally.Encounters are not updated when saving of P2 fails
+
+        when(patientRepository.mergeIfFound(any(PatientUpdate.class))).thenReturn(Observable.just(true));
+        when(patientRepository.findPatient("P2")).thenReturn(Observable.just(false));
+        when(mciWebClient.getPatient("P2")).thenReturn(FileUtil.asString("patients/p2.json"));
+        when(patientRepository.save(any(Patient.class))).thenReturn(Observable.just(false));
+
+        Entry entry = new Entry();
+        entry.setId(UUID.randomUUID().toString());
+        entry.setTitle("foo");
+        entry.setContents(genarateChangeContent("feeds/update_feed_for_merge.txt"));
+        entry.setPublished(new Date());
+        patientUpdateEventWorker.process(new Event(entry));
+
+        ArgumentCaptor<PatientUpdate> captor = ArgumentCaptor.forClass(PatientUpdate.class);
+
+        verify(patientRepository, times(1)).mergeIfFound(captor.capture());
+        PatientUpdate actualUpdateApplied = captor.getValue();
+        assertEquals("P1", actualUpdateApplied.getHealthId());
+
+        verify(mciWebClient, times(1)).getPatient("P2");
+
+        ArgumentCaptor<Patient> patientCaptor = ArgumentCaptor.forClass(Patient.class);
+        verify(patientRepository, times(1)).save(patientCaptor.capture());
+        assertEquals(patientCaptor.getValue(), StringUtils.readFrom(FileUtil.asString("patients/p2.json"), Patient.class));
+
+        verify(encounterRepository, never()).applyMerge(any(PatientUpdate.class));
+
+    }
 
     private List genarateChangeContent(String path) {
         Content content = new Content();
