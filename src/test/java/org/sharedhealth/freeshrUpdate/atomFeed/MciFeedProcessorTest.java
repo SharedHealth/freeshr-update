@@ -51,16 +51,16 @@ public class MciFeedProcessorTest {
         URI nextUri = URI.create("http://127.0.0.1:9997/api/v1/feed/patients?last_marker=32782f90-a843-11e4-ad63-6d5f88e0f020");
 
         when(shrUpdateConfiguration.getMciPatientUpdateFeedUrl()).thenReturn(feedUri);
-        when(mciWebClient.get(feedUri)).thenReturn(asString("feeds/patientUpdatesFeed.xml"));
-        when(mciWebClient.get(nextUri)).thenReturn(asString("feeds/emptyFeed.xml"));
+        when(mciWebClient.getFeed(feedUri)).thenReturn(asString("feeds/patientUpdatesFeed.xml"));
+        when(mciWebClient.getFeed(nextUri)).thenReturn(asString("feeds/emptyFeed.xml"));
 
         AtomFeedSpringTransactionManager transactionManager = new AtomFeedSpringTransactionManager(txMgr);
 
         MciFeedProcessor mciFeedProcessor = new MciFeedProcessor(transactionManager, mciWebClient, patientUpdateEventWorker, shrUpdateConfiguration);
         mciFeedProcessor.pullLatest();
 
-        verify(mciWebClient, times(1)).get(feedUri);
-        verify(mciWebClient, times(1)).get(nextUri);
+        verify(mciWebClient, times(1)).getFeed(feedUri);
+        verify(mciWebClient, times(1)).getFeed(nextUri);
         verify(patientUpdateEventWorker, times(25)).process(any(Event.class));
     }
 

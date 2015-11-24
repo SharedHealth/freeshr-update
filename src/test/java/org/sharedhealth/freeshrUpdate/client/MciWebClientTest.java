@@ -57,7 +57,7 @@ public class MciWebClientTest {
                         .withStatus(200)
                         .withBody(body)));
 
-        String response = mciWebClient.get(URI.create("http://localhost:9997/api/v1/feed/patients?last_marker=foo"));
+        String response = mciWebClient.getFeed(URI.create("http://localhost:9997/api/v1/feed/patients?last_marker=foo"));
         assertNotNull(response);
         assertEquals(response, body);
     }
@@ -79,7 +79,7 @@ public class MciWebClientTest {
                 .willReturn(aResponse()
                         .withStatus(401)));
 
-        mciWebClient.get(URI.create
+        mciWebClient.getFeed(URI.create
                 ("http://localhost:9997/api/v1/feed/patients?last_marker=foo"));
 
         verify(identityServiceClient, times(1)).clearToken();

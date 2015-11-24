@@ -18,7 +18,7 @@ public class MciPatientUpdateFeeds extends AllFeeds {
     @Override
     public com.sun.syndication.feed.atom.Feed getFor(URI uri) {
         try {
-            String response = mciWebClient.get(uri);
+            String response = mciWebClient.getFeed(uri);
             WireFeedInput input = new WireFeedInput();
             return (Feed) input.build(new StringReader(response));
         } catch (Exception e) {

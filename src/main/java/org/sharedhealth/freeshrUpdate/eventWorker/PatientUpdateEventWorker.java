@@ -81,7 +81,7 @@ public class PatientUpdateEventWorker implements EventWorker {
         return new Action1<Throwable>() {
             @Override
             public void call(Throwable throwable) {
-                LOG.error(throwable.getMessage());
+               throw new RuntimeException(throwable);
             }
         };
     }
@@ -99,7 +99,8 @@ public class PatientUpdateEventWorker implements EventWorker {
         return new Func1<Throwable, Observable<Boolean>>() {
             @Override
             public Observable<Boolean> call(Throwable throwable) {
-                return null;
+                LOG.error(throwable.getMessage());
+                throw new RuntimeException(throwable);
             }
         };
     }
@@ -125,11 +126,11 @@ public class PatientUpdateEventWorker implements EventWorker {
                 LOG.debug(String.format("Patient %s %s updated", patientUpdate.getHealthId(), patientUpdated ? "" :
                         "not"));
                 if (patientUpdated) {
-                    Observable<Boolean> mergedWithPatientDownloadObservable = ensurePresent((String) patientUpdate.getPatientMergeChanges().get(MERGED_WITH_COLUMN_NAME));
-                    return mergedWithPatientDownloadObservable.flatMap(new Func1<Boolean, Observable<Boolean>>() {
+                    Observable<Boolean> mergedWithPatientExistsCheckObservable = ensurePresent((String) patientUpdate.getPatientMergeChanges().get(MERGED_WITH_COLUMN_NAME));
+                    return mergedWithPatientExistsCheckObservable.flatMap(new Func1<Boolean, Observable<Boolean>>() {
                         @Override
-                        public Observable<Boolean> call(Boolean patientDownloaded) {
-                            if (patientDownloaded) {
+                        public Observable<Boolean> call(Boolean patientExists) {
+                            if (patientExists) {
                                 return encounterRepository.applyMerge(patientUpdate);
                             }
                             return Observable.just(false);

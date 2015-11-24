@@ -26,7 +26,7 @@ public class MciPatientUpdateFeedsTest {
     @Test
     public void shouldReadResponseAsFeed() throws Exception {
         URI feedUri = URI.create("foo");
-        when(mciWebClient.get(feedUri)).thenReturn(asString("feeds/patientUpdatesFeed.xml"));
+        when(mciWebClient.getFeed(feedUri)).thenReturn(asString("feeds/patientUpdatesFeed.xml"));
         MciPatientUpdateFeeds mciPatientUpdateFeeds = new MciPatientUpdateFeeds(mciWebClient);
         Feed feed = mciPatientUpdateFeeds.getFor(feedUri);
         assertEquals("a4b002e6-dbef-4b97-a6d2-72339838a0e3", feed.getId());

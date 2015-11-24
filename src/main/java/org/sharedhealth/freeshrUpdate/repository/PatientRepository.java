@@ -87,8 +87,7 @@ public class PatientRepository {
     public Observable<Boolean> save(Patient patient) {
         if(patient.getHealthId() != null){
             Observable<ResultSet> saveObservable = Observable.from(cqlOperations.executeAsynchronously(buildPatientInsertQuery(patient)), Schedulers.io());
-            return saveObservable.flatMap(RxMaps.respondOnNext(true), RxMaps.<Boolean>logAndForwardError(LOG),
-                    RxMaps.completeResponds(true));
+            return saveObservable.flatMap(RxMaps.respondOnNext(true), RxMaps.<Boolean>logAndForwardError(LOG), RxMaps.completeResponds(true));
         }
         return Observable.just(false);
     }
