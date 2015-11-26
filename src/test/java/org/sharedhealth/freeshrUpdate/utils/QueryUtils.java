@@ -71,28 +71,13 @@ public class QueryUtils {
 
 
     public void insertPatient(String healthId) {
-        Insert insert = QueryBuilder.insertInto("freeshr", "patient").value("health_id", healthId);
+        Insert insert = QueryBuilder.insertInto("freeshr", "patient").value("health_id", healthId).value("active", true);
         cqlOperations.execute(insert);
     }
 
     public Row fetchPatient(String healthId) {
         ResultSet rs = cqlOperations.query(QueryBuilder.select().all().from("freeshr", "patient").where(eq(KeySpaceUtils.HEALTH_ID_COLUMN_NAME, healthId)).limit(1));
         return rs.all().get(0);
-    }
-
-    public void assertPatient(Patient patient, Row row) {
-        assertEquals(patient.getHealthId(), row.getString(HEALTH_ID_COLUMN_NAME));
-        assertEquals(patient.getGender(), row.getString(GENDER_COLUMN_NAME));
-        assertEquals(patient.getMergedWith(), row.getString(MERGED_WITH_COLUMN_NAME));
-        assertEquals(patient.isActive(), row.getBool(ACTIVE_COLUMN_NAME));
-        if (patient.getAddress() != null) {
-            assertEquals(patient.getAddress().getAddressLine(), row.getString(ADDRESS_LINE_COLUMN_NAME));
-            assertEquals(patient.getAddress().getDivisionId(), row.getString(DIVISION_ID_COLUMN_NAME));
-            assertEquals(patient.getAddress().getDistrictId(), row.getString(DISTRICT_ID_COLUMN_NAME));
-            assertEquals(patient.getAddress().getUpazilaId(), row.getString(UPAZILA_ID_COLUMN_NAME));
-        }
-        if(patient.getConfidentiality() != null)
-            assertEquals(patient.getConfidentiality().getLevel(), row.getString(CONFIDENTIALITY_COLUMN_NAME));
     }
 
     public void trucateAllTables(){

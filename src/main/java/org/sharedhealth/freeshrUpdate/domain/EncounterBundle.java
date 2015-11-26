@@ -35,6 +35,7 @@ public class EncounterBundle {
 
     public void associateTo(String healthId) {
         String inactiveHealthId = this.healthId;
+//        System.out.println("Substituting healthIds " + inactiveHealthId + " with " + healthId);
         this.encounterContent = StringUtils.replace(encounterContent, inactiveHealthId, healthId);
     }
 }

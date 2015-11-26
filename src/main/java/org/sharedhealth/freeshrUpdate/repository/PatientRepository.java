@@ -53,6 +53,7 @@ public class PatientRepository {
         return findPatient(healthId).flatMap(new Func1<Boolean, Observable<Boolean>>() {
             @Override
             public Observable<Boolean> call(Boolean patientExists) {
+//                System.out.println("Patient "+ healthId + "found :" +patientExists);
                 LOG.debug(String.format("Patient %s %s found", healthId, patientExists ? "" : "not"));
                 return patientExists ? savePatientUpdate(patientUpdate.getHealthId(), patientUpdate.getPatientMergeChanges()) : Observable.just(false);
             }
@@ -60,6 +61,7 @@ public class PatientRepository {
     }
 
     public Observable<Boolean> findPatient(final String healthId) {
+//        System.out.println("Finding patient:"+ healthId);
         Observable<ResultSet> observable = Observable.from(
                 cqlOperations.queryAsynchronously(shrQueryBuilder.findPatientQuery(healthId))
         );
@@ -73,6 +75,7 @@ public class PatientRepository {
 
 
     private Observable<Boolean> savePatientUpdate(String healthId, Map<String, Object> patientChanges) {
+//        System.out.println("Updating patient:" + healthId);
         Observable<ResultSet> observable = Observable.from(
                 cqlOperations.executeAsynchronously(shrQueryBuilder.updatePatientQuery(healthId, patientChanges))).first();
 
@@ -86,6 +89,7 @@ public class PatientRepository {
 
     public Observable<Boolean> save(Patient patient) {
         if(patient.getHealthId() != null){
+//            System.out.println("Saving patient:"+ patient.getHealthId());
             Observable<ResultSet> saveObservable = Observable.from(cqlOperations.executeAsynchronously(buildPatientInsertQuery(patient)), Schedulers.io());
             return saveObservable.flatMap(RxMaps.respondOnNext(true), RxMaps.<Boolean>logAndForwardError(LOG), RxMaps.completeResponds(true));
         }

@@ -120,6 +120,7 @@ public class PatientUpdateEventWorker implements EventWorker {
     }
 
     private Func1<Boolean, Observable<Boolean>> onPatientMergeSuccess(final PatientUpdate patientUpdate) {
+//        System.out.println("Patient table merge applied");
         return new Func1<Boolean, Observable<Boolean>>() {
             @Override
             public Observable<Boolean> call(Boolean patientUpdated) {
@@ -154,27 +155,29 @@ public class PatientUpdateEventWorker implements EventWorker {
             @Override
             public Observable<Boolean> call(Boolean patientPresent) {
                 if (patientPresent) return Observable.just(true);
-                return findRemote(healthId);
+                return Observable.just(findRemote(healthId));
             }
         });
     }
 
-    private Observable<Boolean> findRemote(final String healthId) {
+    private Boolean findRemote(final String healthId) {
         try {
+//            System.out.println("Downloading patient:" + healthId);
             String patientResponse = mciWebClient.getPatient(healthId);
             if (patientResponse != null) {
                 Patient patient = readFrom(patientResponse, Patient.class);
-                return patientRepository.save(patient);
+                Observable<Boolean> saveStatus = patientRepository.save(patient);
+                return saveStatus.toBlocking().first();
             }
 
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        return Observable.just(false);
+        return false;
     }
 
     private static String extractContent(String content) {
-        return content.replaceFirst(
+        return content.trim().replaceFirst(
                 "^<!\\[CDATA\\[", "").replaceFirst("\\]\\]>$", "");
     }
 

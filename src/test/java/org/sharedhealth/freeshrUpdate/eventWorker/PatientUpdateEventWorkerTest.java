@@ -179,7 +179,7 @@ public class PatientUpdateEventWorkerTest {
 
         ArgumentCaptor<Patient> patientCaptor = ArgumentCaptor.forClass(Patient.class);
         verify(patientRepository, times(1)).save(patientCaptor.capture());
-        assertEquals(patientCaptor.getValue(), StringUtils.readFrom(FileUtil.asString("patients/p2.json"), Patient.class));
+        assertEquals(patientCaptor.getValue(), StringUtils.readFrom(FileUtil.asString("patients/P2.json"), Patient.class));
 
         verify(encounterRepository, times(1)).applyMerge(eq(actualUpdateApplied));
 
@@ -222,7 +222,7 @@ public class PatientUpdateEventWorkerTest {
 
         when(patientRepository.mergeIfFound(any(PatientUpdate.class))).thenReturn(Observable.just(true));
         when(patientRepository.findPatient("P2")).thenReturn(Observable.just(false));
-        when(mciWebClient.getPatient("P2")).thenReturn(FileUtil.asString("patients/p2.json"));
+        when(mciWebClient.getPatient("P2")).thenReturn(FileUtil.asString("patients/P2.json"));
         when(patientRepository.save(any(Patient.class))).thenReturn(Observable.just(false));
 
         Entry entry = new Entry();
@@ -242,7 +242,7 @@ public class PatientUpdateEventWorkerTest {
 
         ArgumentCaptor<Patient> patientCaptor = ArgumentCaptor.forClass(Patient.class);
         verify(patientRepository, times(1)).save(patientCaptor.capture());
-        assertEquals(patientCaptor.getValue(), StringUtils.readFrom(FileUtil.asString("patients/p2.json"), Patient.class));
+        assertEquals(patientCaptor.getValue(), StringUtils.readFrom(FileUtil.asString("patients/P2.json"), Patient.class));
 
         verify(encounterRepository, never()).applyMerge(any(PatientUpdate.class));
 

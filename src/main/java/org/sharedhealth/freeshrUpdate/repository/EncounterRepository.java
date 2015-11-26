@@ -83,10 +83,9 @@ public class EncounterRepository {
     }
 
     public Observable<Boolean> applyMerge(final PatientUpdate patientUpdate){
-
+//        System.out.println("Applying Encounter merge");
         Observable<EncounterBundle> encounterBundlesObservable = getEncounterBundles(patientUpdate.getHealthId());
         Observable<Boolean> encounterMergeObservable = encounterBundlesObservable.flatMap(getEncountersSuccess(patientUpdate));
-
         return encounterMergeObservable;
     }
 
@@ -94,6 +93,7 @@ public class EncounterRepository {
         return new Func1<EncounterBundle, Observable<Boolean>>() {
             @Override
             public Observable<Boolean> call(EncounterBundle encounterBundle) {
+//                System.out.println("Processing encounter bundle");
                 return associateEncounterBundleTo(encounterBundle, (String) patientUpdate.getPatientMergeChanges().get(MERGED_WITH_COLUMN_NAME));
             }
         };
@@ -105,6 +105,7 @@ public class EncounterRepository {
         return encounterIdsForPatient.flatMap(new Func1<List<String>, Observable<EncounterBundle>>() {
             @Override
             public Observable<EncounterBundle> call(List<String> encounterIds) {
+//                System.out.println("Constructing Encounter Bundles");
                 Statement encountersByEncounterIdsQuery = shrQueryBuilder.findEncounterBundlesByEncounterIdsQuery(encounterIds);
                 Observable<ResultSet> observable = Observable.from(cqlOperations.queryAsynchronously(encountersByEncounterIdsQuery.toString()));
                 return observable.flatMap(new Func1<ResultSet, Observable<EncounterBundle>>() {
@@ -127,6 +128,7 @@ public class EncounterRepository {
     }
 
     public Observable<Boolean> associateEncounterBundleTo(EncounterBundle encounterBundle, String healthIdToMergeWith){
+//        System.out.println("Substituting healthIds");
         encounterBundle.associateTo(healthIdToMergeWith);
 
         UUID createdAt = TimeUuidUtil.uuidForDate(new Date());
@@ -145,6 +147,7 @@ public class EncounterRepository {
         return observable.flatMap(new Func1<ResultSet, Observable<List<String>>>() {
             @Override
             public Observable<List<String>> call(ResultSet rows) {
+//                System.out.println("Fetching Encounter Ids");
                 LOG.debug("Fetching All Encounters for patient %s", healthId);
                 List<String> encounterIds = new ArrayList<>();
                 for (Row row : rows.all()) {

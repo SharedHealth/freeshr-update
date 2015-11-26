@@ -1,5 +1,6 @@
 package org.sharedhealth.freeshrUpdate.repository;
 
+import com.datastax.driver.core.Row;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -17,7 +18,12 @@ import org.springframework.cassandra.core.CqlOperations;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.sharedhealth.freeshrUpdate.utils.KeySpaceUtils.*;
+import static org.sharedhealth.freeshrUpdate.utils.KeySpaceUtils.CONFIDENTIALITY_COLUMN_NAME;
+import static org.sharedhealth.freeshrUpdate.utils.KeySpaceUtils.UPAZILA_ID_COLUMN_NAME;
 
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -56,7 +62,7 @@ public class PatientRepositoryIT {
         patient.setMergedWith("Some other active patient");
 
         patientRepository.save(patient).toBlocking().first();
-        queryUtils.assertPatient(patient, queryUtils.fetchPatient("123"));
+        assertPatient(patient, queryUtils.fetchPatient("123"));
     }
 
     @Test
@@ -74,8 +80,31 @@ public class PatientRepositoryIT {
         patient.setConfidentiality("YES");
 
         patientRepository.save(patient).toBlocking().first();
-        queryUtils.assertPatient(patient, queryUtils.fetchPatient("123"));
+        assertPatient(patient, queryUtils.fetchPatient("123"));
 
+    }
+
+    @Test
+    public void shouldVerifyIfPatientIsPresentOnLocal() throws Exception {
+        queryUtils.insertPatient("P1");
+        assertTrue(patientRepository.findPatient("P1").toBlocking().first());
+        assertFalse(patientRepository.findPatient("Some random patient").toBlocking().first());
+
+    }
+
+    public void assertPatient(Patient patient, Row row) {
+        assertEquals(patient.getHealthId(), row.getString(HEALTH_ID_COLUMN_NAME));
+        assertEquals(patient.getGender(), row.getString(GENDER_COLUMN_NAME));
+        assertEquals(patient.getMergedWith(), row.getString(MERGED_WITH_COLUMN_NAME));
+        assertEquals(patient.isActive(), row.getBool(ACTIVE_COLUMN_NAME));
+        if (patient.getAddress() != null) {
+            assertEquals(patient.getAddress().getAddressLine(), row.getString(ADDRESS_LINE_COLUMN_NAME));
+            assertEquals(patient.getAddress().getDivisionId(), row.getString(DIVISION_ID_COLUMN_NAME));
+            assertEquals(patient.getAddress().getDistrictId(), row.getString(DISTRICT_ID_COLUMN_NAME));
+            assertEquals(patient.getAddress().getUpazilaId(), row.getString(UPAZILA_ID_COLUMN_NAME));
+        }
+        if(patient.getConfidentiality() != null)
+            assertEquals(patient.getConfidentiality().getLevel(), row.getString(CONFIDENTIALITY_COLUMN_NAME));
     }
 
     @After

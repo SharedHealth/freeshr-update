@@ -12,6 +12,7 @@ public class RxMaps {
         return new Func1<ResultSet, Observable<? extends T>>() {
             @Override
             public Observable<? extends T> call(ResultSet rows) {
+//                System.out.println("Save successful!");
                 return Observable.just(value);
             }
         };
