@@ -32,11 +32,15 @@ public class SHRQueryBuilder {
     }
 
 
-    public Select findPatientQuery(String healthId) {
+    public Select checkPatientExistsQuery(String healthId) {
         return QueryBuilder.select().countAll().from(configuration.getCassandraKeySpace(), PATIENT_TABLE_NAME)
                 .where(eq(HEALTH_ID_COLUMN_NAME, healthId)).limit(1);
     }
 
+    public Select getPatient(String healthId) {
+        return QueryBuilder.select().all().from(configuration.getCassandraKeySpace(), PATIENT_TABLE_NAME)
+                .where(eq(HEALTH_ID_COLUMN_NAME, healthId)).limit(1);
+    }
     public Statement updatePatientQuery(String healthId, Map<String, Object> patientChanges) {
         Map<String, Object> changes = patientChanges;
 
@@ -99,23 +103,26 @@ public class SHRQueryBuilder {
         update.with(set(PATIENT_CONFIDENTIALITY_COLUMN_NAME, confidentialChange));
         
         return update.where(eq(ENCOUNTER_ID_COLUMN_NAME, encountersDetail.getEncounterId())).
-                and(eq(RECEIVED_AT_COLUMN_NAME, encountersDetail.getReceivedDate()));
+                and(eq(RECEIVED_AT_COLUMN_NAME, TimeUuidUtil.uuidForDate(encountersDetail.getReceivedDate())));
     }
 
     public Statement insertCatchmentFeedForAddressChange(PatientUpdate patientUpdate, EncounterDetail encounterDetail){
         Address addressChange = patientUpdate.getChangeSet().getAddressChange();
         UUID createdAt = TimeUuidUtil.uuidForDate(new Date());
 
-        Insert insertEncByCatchmentStmt = QueryBuilder.insertInto(configuration.getCassandraKeySpace(), ENCOUNTER_BY_CATCHMENT_TABLE_NAME)
-                                    .value(DIVISION_ID_COLUMN_NAME, addressChange.getDivisionId())
-                                    .value(DISTRICT_ID_COLUMN_NAME, addressChange.getConcatenatedDistrictId())
-                                    .value(UPAZILA_ID_COLUMN_NAME, addressChange.getConcatenatedUpazilaId())
+        Insert insertEncByCatchmentStmt = getInsEncByCatchmentStmt(addressChange.getDivisionId(), addressChange.getConcatenatedDistrictId(), addressChange.getConcatenatedUpazilaId(), addressChange.getConcatenatedCityCorporationId(), addressChange.getConcatenatedWardId(), encounterDetail.getEncounterId(), createdAt);
+        return insertEncByCatchmentStmt;
+    }
+
+    public Insert getInsEncByCatchmentStmt(String divisionId, String concatenatedDistrictId, String concatenatedUpazillaId, String concatenatedCityCorporationId, String concatenatedWardId, String encounterId, UUID createdAt) {
+        return QueryBuilder.insertInto(configuration.getCassandraKeySpace(), ENCOUNTER_BY_CATCHMENT_TABLE_NAME)
+                                    .value(DIVISION_ID_COLUMN_NAME, divisionId)
+                                    .value(DISTRICT_ID_COLUMN_NAME, concatenatedDistrictId)
+                                    .value(UPAZILA_ID_COLUMN_NAME, concatenatedUpazillaId)
                                     .value(YEAR, Calendar.getInstance().get(Calendar.YEAR))
                                     .value(CREATED_AT_COLUMN_NAME, createdAt)
-                                    .value(CITY_CORPORATION_ID_COLUMN_NAME, StringUtils.defaultString(addressChange.getConcatenatedCityCorporationId()))
-                                    .value(UNION_OR_URBAN_COLUMN_NAME, StringUtils.defaultString(addressChange.getConcatenatedWardId()))
-                                    .value(ENCOUNTER_ID_COLUMN_NAME, encounterDetail.getEncounterId());
-
-        return insertEncByCatchmentStmt;
+                                    .value(CITY_CORPORATION_ID_COLUMN_NAME, StringUtils.defaultString(concatenatedCityCorporationId))
+                                    .value(UNION_OR_URBAN_COLUMN_NAME, StringUtils.defaultString(concatenatedWardId))
+                                    .value(ENCOUNTER_ID_COLUMN_NAME, encounterId);
     }
 }

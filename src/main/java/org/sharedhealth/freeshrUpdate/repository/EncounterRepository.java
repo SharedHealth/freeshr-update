@@ -8,7 +8,9 @@ import com.datastax.driver.core.querybuilder.Batch;
 import com.datastax.driver.core.querybuilder.Insert;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.datastax.driver.core.querybuilder.Update;
+import org.sharedhealth.freeshrUpdate.domain.Address;
 import org.sharedhealth.freeshrUpdate.domain.EncounterBundle;
+import org.sharedhealth.freeshrUpdate.domain.Patient;
 import org.sharedhealth.freeshrUpdate.domain.PatientUpdate;
 import org.sharedhealth.freeshrUpdate.utils.TimeUuidUtil;
 import org.slf4j.Logger;
@@ -82,19 +84,19 @@ public class EncounterRepository {
         }, onError(), onCompleted());
     }
 
-    public Observable<Boolean> applyMerge(final PatientUpdate patientUpdate){
+    public Observable<Boolean> applyMerge(final PatientUpdate patientUpdate, Patient patientToBeMergedWith){
 //        System.out.println("Applying Encounter merge");
         Observable<EncounterBundle> encounterBundlesObservable = getEncounterBundles(patientUpdate.getHealthId());
-        Observable<Boolean> encounterMergeObservable = encounterBundlesObservable.flatMap(getEncountersSuccess(patientUpdate));
+        Observable<Boolean> encounterMergeObservable = encounterBundlesObservable.flatMap(getEncountersSuccess(patientToBeMergedWith));
         return encounterMergeObservable;
     }
 
-    private Func1<EncounterBundle, Observable<Boolean>> getEncountersSuccess(final PatientUpdate patientUpdate) {
+    private Func1<EncounterBundle, Observable<Boolean>> getEncountersSuccess(final Patient patientToBeMergedWith) {
         return new Func1<EncounterBundle, Observable<Boolean>>() {
             @Override
             public Observable<Boolean> call(EncounterBundle encounterBundle) {
 //                System.out.println("Processing encounter bundle");
-                return associateEncounterBundleTo(encounterBundle, (String) patientUpdate.getPatientMergeChanges().get(MERGED_WITH_COLUMN_NAME));
+                return associateEncounterBundleTo(encounterBundle, patientToBeMergedWith);
             }
         };
     }
@@ -127,17 +129,26 @@ public class EncounterRepository {
         });
     }
 
-    public Observable<Boolean> associateEncounterBundleTo(EncounterBundle encounterBundle, String healthIdToMergeWith){
+    public Observable<Boolean> associateEncounterBundleTo(EncounterBundle encounterBundle, Patient patientToBeMergeWith){
 //        System.out.println("Substituting healthIds");
+        String healthIdToMergeWith = patientToBeMergeWith.getHealthId();
         encounterBundle.associateTo(healthIdToMergeWith);
 
         UUID createdAt = TimeUuidUtil.uuidForDate(new Date());
         Update updateEncounterStmt = shrQueryBuilder.updateEncounterOnMergeStatement(encounterBundle, healthIdToMergeWith);
+
         Insert insertEncByPatientStatement = shrQueryBuilder.insertEncByPatientStatement(encounterBundle, createdAt, healthIdToMergeWith);
-
         Batch batch = QueryBuilder.batch(updateEncounterStmt, insertEncByPatientStatement);
+        Address address = patientToBeMergeWith.getAddress();
 
-        Observable<ResultSet> mergeObservable = Observable.from(cqlOperations.executeAsynchronously(batch), Schedulers.io());
+        if(address != null){
+        Insert insertEncByCatchmentStmt = shrQueryBuilder.getInsEncByCatchmentStmt(address.getDivisionId(), address.getConcatenatedDistrictId(), address.getConcatenatedUpazilaId(), address.getConcatenatedCityCorporationId(),
+                address.getConcatenatedWardId(), encounterBundle.getEncounterId(), createdAt);
+            batch.add(insertEncByCatchmentStmt);
+
+        }
+
+        Observable<ResultSet> mergeObservable = Observable.from(cqlOperations.executeAsynchronously(batch), Schedulers.immediate());
         return mergeObservable.flatMap(respondOnNext(true), RxMaps.<Boolean>logAndForwardError(LOG), completeResponds(true));
     }
 

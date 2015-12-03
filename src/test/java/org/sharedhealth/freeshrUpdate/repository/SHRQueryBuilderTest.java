@@ -173,8 +173,8 @@ public class SHRQueryBuilderTest {
 
         Statement updateEncounterQuery = new SHRQueryBuilder(configuration).updateEncounterQuery(patientUpdate, encounterDetail);
 
-        String expectedQuery = String.format("UPDATE keyspace.%s SET %s='N' WHERE %s='123' AND %s=12345;",
-                ENCOUNTER_TABLE_NAME, PATIENT_CONFIDENTIALITY_COLUMN_NAME, ENCOUNTER_ID_COLUMN_NAME, RECEIVED_AT_COLUMN_NAME);
+        String expectedQuery = String.format("UPDATE keyspace.%s SET %s='N' WHERE %s='123' AND %s=%s;",
+                ENCOUNTER_TABLE_NAME, PATIENT_CONFIDENTIALITY_COLUMN_NAME, ENCOUNTER_ID_COLUMN_NAME, RECEIVED_AT_COLUMN_NAME, TimeUuidUtil.uuidForDate(receivedDate));
         assertEquals(expectedQuery, updateEncounterQuery.toString());
     }
 
@@ -188,8 +188,8 @@ public class SHRQueryBuilderTest {
 
         Statement updateEncounterQuery = new SHRQueryBuilder(configuration).updateEncounterQuery(patientUpdate, encounterDetail);
 
-        String expectedQuery = String.format("UPDATE keyspace.%s SET %s='V' WHERE %s='123' AND %s=12345;",
-                ENCOUNTER_TABLE_NAME, PATIENT_CONFIDENTIALITY_COLUMN_NAME, ENCOUNTER_ID_COLUMN_NAME, RECEIVED_AT_COLUMN_NAME);
+        String expectedQuery = String.format("UPDATE keyspace.%s SET %s='V' WHERE %s='123' AND %s=%s;",
+                ENCOUNTER_TABLE_NAME, PATIENT_CONFIDENTIALITY_COLUMN_NAME, ENCOUNTER_ID_COLUMN_NAME, RECEIVED_AT_COLUMN_NAME, TimeUuidUtil.uuidForDate(receivedDate));
         assertEquals(expectedQuery, updateEncounterQuery.toString());
     }
     

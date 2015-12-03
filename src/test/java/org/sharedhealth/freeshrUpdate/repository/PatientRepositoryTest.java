@@ -51,12 +51,12 @@ public class PatientRepositoryTest {
         when(resultSet.one()).thenReturn(result);
         when(resultSetFuture.get()).thenReturn(resultSet);
         Select selectQuery = getSelectQuery(patientUpdate.getHealthId());
-        when(shrQueryBuilder.findPatientQuery(anyString())).thenReturn(selectQuery);
+        when(shrQueryBuilder.checkPatientExistsQuery(anyString())).thenReturn(selectQuery);
         when(cqlOperations.queryAsynchronously(selectQuery)).thenReturn(resultSetFuture);
         PatientRepository patientRepository = new PatientRepository(cqlOperations, shrQueryBuilder);
         patientRepository.applyUpdate(patientUpdate).toBlocking().first();
 
-        verify(shrQueryBuilder, times(1)).findPatientQuery(patientUpdate.getHealthId());
+        verify(shrQueryBuilder, times(1)).checkPatientExistsQuery(patientUpdate.getHealthId());
         verify(shrQueryBuilder, times(0)).updatePatientQuery(patientUpdate.getHealthId(), patientUpdate.getPatientDetailChanges());
 
         ArgumentCaptor<Select> captor = ArgumentCaptor.forClass(Select.class);
@@ -74,7 +74,7 @@ public class PatientRepositoryTest {
         when(resultSet.one()).thenReturn(result);
         when(resultSetFuture.get()).thenReturn(resultSet);
         Select selectQuery = getSelectQuery(patientUpdate.getHealthId());
-        when(shrQueryBuilder.findPatientQuery(anyString())).thenReturn(selectQuery);
+        when(shrQueryBuilder.checkPatientExistsQuery(anyString())).thenReturn(selectQuery);
         when(cqlOperations.queryAsynchronously(selectQuery)).thenReturn(resultSetFuture);
 
         Statement updateQuery = getUpdateQuery();
@@ -85,7 +85,7 @@ public class PatientRepositoryTest {
         new PatientRepository(cqlOperations, shrQueryBuilder)
                 .applyUpdate(patientUpdate).toBlocking().first();
 
-        verify(shrQueryBuilder, times(1)).findPatientQuery(patientUpdate.getHealthId());
+        verify(shrQueryBuilder, times(1)).checkPatientExistsQuery(patientUpdate.getHealthId());
         verify(shrQueryBuilder, times(1)).updatePatientQuery(patientUpdate.getHealthId(), patientUpdate.getPatientDetailChanges());
 
         ArgumentCaptor<Statement> captor = ArgumentCaptor.forClass(Statement.class);
@@ -100,7 +100,7 @@ public class PatientRepositoryTest {
         when(resultSet.one()).thenReturn(result);
         when(resultSetFuture.get()).thenReturn(resultSet);
         Select selectQuery = getSelectQuery(patientUpdate.getHealthId());
-        when(shrQueryBuilder.findPatientQuery(anyString())).thenReturn(selectQuery);
+        when(shrQueryBuilder.checkPatientExistsQuery(anyString())).thenReturn(selectQuery);
         when(cqlOperations.queryAsynchronously(selectQuery)).thenReturn(resultSetFuture);
 
         Statement updateQuery = getUpdateQuery();
@@ -111,7 +111,7 @@ public class PatientRepositoryTest {
         new PatientRepository(cqlOperations, shrQueryBuilder)
                 .mergeIfFound(patientUpdate).toBlocking().first();
 
-        verify(shrQueryBuilder, times(1)).findPatientQuery("P1");
+        verify(shrQueryBuilder, times(1)).checkPatientExistsQuery("P1");
         verify(shrQueryBuilder, times(1)).updatePatientQuery("P1", new HashMap<String,Object>(){{
            put("active", false);
            put("merged_with", "P2");
@@ -131,13 +131,13 @@ public class PatientRepositoryTest {
         when(resultSet.one()).thenReturn(result);
         when(resultSetFuture.get()).thenReturn(resultSet);
         Select selectQuery = getSelectQuery(patientUpdate.getHealthId());
-        when(shrQueryBuilder.findPatientQuery(anyString())).thenReturn(selectQuery);
+        when(shrQueryBuilder.checkPatientExistsQuery(anyString())).thenReturn(selectQuery);
         when(cqlOperations.queryAsynchronously(selectQuery)).thenReturn(resultSetFuture);
 
         Boolean patientMergeResult = new PatientRepository(cqlOperations, shrQueryBuilder)
                 .mergeIfFound(patientUpdate).toBlocking().first();
 
-        verify(shrQueryBuilder, times(1)).findPatientQuery("P1");
+        verify(shrQueryBuilder, times(1)).checkPatientExistsQuery("P1");
         verify(shrQueryBuilder, times(0)).updatePatientQuery(patientUpdate.getHealthId(), patientUpdate.getPatientMergeChanges());
 
         assertFalse(patientMergeResult);

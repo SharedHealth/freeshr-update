@@ -87,8 +87,8 @@ public class PatientRepositoryIT {
     @Test
     public void shouldVerifyIfPatientIsPresentOnLocal() throws Exception {
         queryUtils.insertPatient("P1");
-        assertTrue(patientRepository.findPatient("P1").toBlocking().first());
-        assertFalse(patientRepository.findPatient("Some random patient").toBlocking().first());
+        assertTrue(patientRepository.checkPatientExists("P1").toBlocking().first());
+        assertFalse(patientRepository.checkPatientExists("Some random patient").toBlocking().first());
 
     }
 

@@ -12,6 +12,7 @@ import org.sharedhealth.freeshrUpdate.config.ShrUpdateConfiguration;
 import org.sharedhealth.freeshrUpdate.eventWorker.PatientUpdateEventWorker;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import rx.Observable;
 
 import java.net.URI;
 
@@ -45,6 +46,11 @@ public class MciFeedProcessor {
                 patientUpdateEventWorker,
                 atomProperties);
         atomFeedClient.processEvents();
+    }
+
+    public Observable<String> pullLatestForTest(){
+        pullLatest();
+        return Observable.just("Testing");
     }
 
     public void pullFailedEvents() {

@@ -7,17 +7,14 @@ import com.datastax.driver.core.querybuilder.Insert;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.datastax.driver.core.querybuilder.Select;
 import org.sharedhealth.freeshrUpdate.domain.EncounterBundle;
-import org.sharedhealth.freeshrUpdate.domain.Patient;
 import org.springframework.cassandra.core.CqlOperations;
 
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
 import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
 import static org.junit.Assert.assertEquals;
 import static org.sharedhealth.freeshrUpdate.utils.KeySpaceUtils.*;
-import static org.sharedhealth.freeshrUpdate.utils.KeySpaceUtils.CONFIDENTIALITY_COLUMN_NAME;
 
 public class QueryUtils {
 
@@ -44,12 +41,12 @@ public class QueryUtils {
         return rs.all();
     }
 
-    public List<Row> fetchCatchmentFeed(String divisionId, String districtId){
+    public List<Row> fetchCatchmentFeed(String divisionId, String concatenatedDistrictId, int year){
         Select select = QueryBuilder.select().all()
                 .from("freeshr", ENCOUNTER_BY_CATCHMENT_TABLE_NAME);
         select.where(eq("division_id", divisionId))
-                .and(eq("district_id", districtId))
-                .and(eq("year", Calendar.getInstance().get(Calendar.YEAR)));
+                .and(eq("district_id", concatenatedDistrictId))
+                .and(eq("year", year));
         ResultSet rs = cqlOperations.query(select);
 
         return rs.all();
@@ -60,11 +57,11 @@ public class QueryUtils {
         cqlOperations.execute(insert);
     }
 
-    public void insertEncounterByCatchment(String encounterId, String divisionId, String districtId, Date createdAt) {
+    public void insertEncounterByCatchment(String encounterId, String divisionId, String concatenatedDistrictId, Date createdAt) {
         Insert insert = QueryBuilder.insertInto("freeshr", "enc_by_catchment")
                 .value("encounter_id", encounterId).value("division_id", divisionId)
-                .value("district_id", districtId)
-                .value("year", Calendar.getInstance().get(Calendar.YEAR))
+                .value("district_id", concatenatedDistrictId)
+                .value("year", DateUtil.getYearOf(createdAt))
                 .value("created_at", TimeUuidUtil.uuidForDate(createdAt));
         cqlOperations.execute(insert);
     }

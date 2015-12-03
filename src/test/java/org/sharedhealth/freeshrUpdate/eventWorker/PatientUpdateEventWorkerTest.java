@@ -110,7 +110,8 @@ public class PatientUpdateEventWorkerTest {
         //P1 merged with P2
         //P1,P2 present locally
         when(patientRepository.mergeIfFound(any(PatientUpdate.class))).thenReturn(Observable.just(true));
-        when(patientRepository.findPatient("P2")).thenReturn(Observable.just(true));
+        Patient p2 = new Patient();
+        when(patientRepository.fetchPatient("P2")).thenReturn(Observable.just(p2));
         Entry entry = new Entry();
         entry.setId(UUID.randomUUID().toString());
         entry.setTitle("foo");
@@ -128,8 +129,7 @@ public class PatientUpdateEventWorkerTest {
             put("merged_with", "P2");
         }}, actualUpdateApplied.getPatientMergeChanges());
 
-
-        verify(encounterRepository,times(1)).applyMerge(captor.capture());
+        verify(encounterRepository,times(1)).applyMerge(actualUpdateApplied, p2);
         verify(patientRepository, never()).applyUpdate(any(PatientUpdate.class));
 
     }
@@ -148,7 +148,7 @@ public class PatientUpdateEventWorkerTest {
         patientUpdateEventWorker.process(new Event(entry));
 
         verify(patientRepository, times(1)).mergeIfFound(any(PatientUpdate.class));
-        verify(encounterRepository,never()).applyMerge(any(PatientUpdate.class));
+        verify(encounterRepository,never()).applyMerge(any(PatientUpdate.class), any(Patient.class));
     }
 
     @Test
@@ -158,7 +158,7 @@ public class PatientUpdateEventWorkerTest {
         //P2 not present locally.Encounters are updated only after downloading P2
 
         when(patientRepository.mergeIfFound(any(PatientUpdate.class))).thenReturn(Observable.just(true));
-        when(patientRepository.findPatient("P2")).thenReturn(Observable.just(false));
+        when(patientRepository.fetchPatient("P2")).thenReturn(Observable.<Patient>just(null));
         when(mciWebClient.getPatient("P2")).thenReturn(FileUtil.asString("patients/p2.json"));
         when(patientRepository.save(any(Patient.class))).thenReturn(Observable.just(true));
 
@@ -181,8 +181,7 @@ public class PatientUpdateEventWorkerTest {
         verify(patientRepository, times(1)).save(patientCaptor.capture());
         assertEquals(patientCaptor.getValue(), StringUtils.readFrom(FileUtil.asString("patients/P2.json"), Patient.class));
 
-        verify(encounterRepository, times(1)).applyMerge(eq(actualUpdateApplied));
-
+        verify(encounterRepository, times(1)).applyMerge(eq(actualUpdateApplied), eq(patientCaptor.getValue()));
     }
 
 
@@ -193,7 +192,7 @@ public class PatientUpdateEventWorkerTest {
         //P2 not present locally.Encounters are not updated when downloading of P2 fails
 
         when(patientRepository.mergeIfFound(any(PatientUpdate.class))).thenReturn(Observable.just(true));
-        when(patientRepository.findPatient("P2")).thenReturn(Observable.just(false));
+        when(patientRepository.fetchPatient("P2")).thenReturn(Observable.<Patient>just(null));
         when(mciWebClient.getPatient("P2")).thenThrow(new IOException());
 
         Entry entry = new Entry();
@@ -210,7 +209,8 @@ public class PatientUpdateEventWorkerTest {
 
         verify(mciWebClient, times(1)).getPatient("P2");
         verify(patientRepository, never()).save(any(Patient.class));
-        verify(encounterRepository, never()).applyMerge(any(PatientUpdate.class));
+
+        verify(encounterRepository, never()).applyMerge(any(PatientUpdate.class), any(Patient.class));
     }
 
 
@@ -221,7 +221,7 @@ public class PatientUpdateEventWorkerTest {
         //P2 not present locally.Encounters are not updated when saving of P2 fails
 
         when(patientRepository.mergeIfFound(any(PatientUpdate.class))).thenReturn(Observable.just(true));
-        when(patientRepository.findPatient("P2")).thenReturn(Observable.just(false));
+        when(patientRepository.fetchPatient("P2")).thenReturn(Observable.<Patient>just(null));
         when(mciWebClient.getPatient("P2")).thenReturn(FileUtil.asString("patients/P2.json"));
         when(patientRepository.save(any(Patient.class))).thenReturn(Observable.just(false));
 
@@ -244,7 +244,7 @@ public class PatientUpdateEventWorkerTest {
         verify(patientRepository, times(1)).save(patientCaptor.capture());
         assertEquals(patientCaptor.getValue(), StringUtils.readFrom(FileUtil.asString("patients/P2.json"), Patient.class));
 
-        verify(encounterRepository, never()).applyMerge(any(PatientUpdate.class));
+        verify(encounterRepository, never()).applyMerge(any(PatientUpdate.class), any(Patient.class));
 
     }
 

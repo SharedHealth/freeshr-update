@@ -1,6 +1,7 @@
 package org.sharedhealth.freeshrUpdate.repository;
 
 import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.Row;
 import com.datastax.driver.core.querybuilder.Insert;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import org.sharedhealth.freeshrUpdate.domain.Address;
@@ -39,7 +40,7 @@ public class PatientRepository {
 
     public Observable<Boolean> applyUpdate(final PatientUpdate patientUpdate) {
         final String healthId = patientUpdate.getHealthId();
-        return findPatient(healthId).flatMap(new Func1<Boolean, Observable<Boolean>>() {
+        return checkPatientExists(healthId).flatMap(new Func1<Boolean, Observable<Boolean>>() {
             @Override
             public Observable<Boolean> call(Boolean patientExists) {
                 LOG.debug(String.format("Patient %s %s found", healthId, patientExists ? "" : "not"));
@@ -50,7 +51,7 @@ public class PatientRepository {
 
     public Observable<Boolean> mergeIfFound(final PatientUpdate patientUpdate) {
         final String healthId = patientUpdate.getHealthId();
-        return findPatient(healthId).flatMap(new Func1<Boolean, Observable<Boolean>>() {
+        return checkPatientExists(healthId).flatMap(new Func1<Boolean, Observable<Boolean>>() {
             @Override
             public Observable<Boolean> call(Boolean patientExists) {
 //                System.out.println("Patient "+ healthId + "found :" +patientExists);
@@ -60,17 +61,54 @@ public class PatientRepository {
         }, onError(), onCompletion());
     }
 
-    public Observable<Boolean> findPatient(final String healthId) {
+    public Observable<Boolean> checkPatientExists(final String healthId) {
 //        System.out.println("Finding patient:"+ healthId);
-        Observable<ResultSet> observable = Observable.from(
-                cqlOperations.queryAsynchronously(shrQueryBuilder.findPatientQuery(healthId))
+        Observable<ResultSet> patientExistsObservable = Observable.from(
+                cqlOperations.queryAsynchronously(shrQueryBuilder.checkPatientExistsQuery(healthId))
         );
-        return observable.flatMap(new Func1<ResultSet, Observable<Boolean>>() {
+        return patientExistsObservable.flatMap(new Func1<ResultSet, Observable<Boolean>>() {
             @Override
             public Observable<Boolean> call(ResultSet rows) {
                 return Observable.just(rows.one().getLong("count") > 0);
             }
         }, onError(), onCompletion()).firstOrDefault(false);
+    }
+
+    public Observable<Patient> fetchPatient(String healthID) {
+        Observable<ResultSet> patientObservable = Observable.from(
+                cqlOperations.queryAsynchronously(shrQueryBuilder.getPatient(healthID))
+        );
+        return patientObservable.flatMap(new Func1<ResultSet, Observable<Patient>>() {
+            @Override
+            public Observable<Patient> call(ResultSet patientRows) {
+                Row patientRow = patientRows.one();
+                if (patientRow != null) {
+                    return Observable.just(readPatient(patientRow));
+                }
+                return Observable.just(null);
+            }
+        });
+
+    }
+
+    private Patient readPatient(Row row) {
+        Patient patient = new Patient();
+        patient.setHealthId(row.getString("health_id"));
+        String divisionId = row.getString("division_id");
+        String districtId = row.getString("district_id");
+        String upazilaId = row.getString("upazila_id");
+        if(divisionId != null && districtId != null && upazilaId!= null){
+            Address address = new Address();
+            address.setDivisionId(divisionId);
+            address.setDistrictId(districtId);
+            address.setUpazilaId(upazilaId);
+            address.setCityCorporationId(row.getString("city_corporation_id"));
+            address.setUnionOrUrbanWardId(row.getString("union_urban_ward_id"));
+            address.setAddressLine(row.getString("address_line"));
+            patient.setAddress(address);
+        }
+        return patient;
+
     }
 
 
@@ -88,7 +126,7 @@ public class PatientRepository {
     }
 
     public Observable<Boolean> save(Patient patient) {
-        if(patient.getHealthId() != null){
+        if (patient.getHealthId() != null) {
 //            System.out.println("Saving patient:"+ patient.getHealthId());
             Observable<ResultSet> saveObservable = Observable.from(cqlOperations.executeAsynchronously(buildPatientInsertQuery(patient)), Schedulers.io());
             return saveObservable.flatMap(RxMaps.respondOnNext(true), RxMaps.<Boolean>logAndForwardError(LOG), RxMaps.completeResponds(true));
@@ -102,7 +140,7 @@ public class PatientRepository {
                 .value("health_id", patient.getHealthId())
                 .value("merged_with", patient.getMergedWith())
                 .value("active", patient.isActive());
-        if(patient.getMergedWith() == null) {
+        if (patient.getMergedWith() == null) {
             insert.value("gender", patient.getGender())
                     .value("address_line", address.getAddressLine())
                     .value("division_id", address.getDivisionId())

@@ -1,7 +1,6 @@
 package org.sharedhealth.freeshrUpdate.atomFeed;
 
 import com.datastax.driver.core.Row;
-import com.google.common.collect.Lists;
 import org.joda.time.DateTime;
 import org.junit.After;
 import org.junit.Before;
@@ -27,11 +26,13 @@ import org.springframework.cassandra.core.CqlOperations;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import rx.Observable;
+import rx.observers.TestSubscriber;
 
 import java.net.URI;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
-import java.util.ArrayList;
+import java.util.List;
 
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertEquals;
@@ -39,7 +40,6 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.sharedhealth.freeshrUpdate.utils.KeySpaceUtils.*;
-import static org.sharedhealth.freeshrUpdate.utils.KeySpaceUtils.CONFIDENTIALITY_COLUMN_NAME;
 
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -88,9 +88,12 @@ public class MCIFeedProcessorIT {
         when(mciWebClient.getFeed(new URI("http://127.0.0.1:8081/api/v1/feed/patients?last_marker=end"))).thenReturn(FileUtil.asString("feeds/emptyFeed.xml"));
         when(mciWebClient.getPatient("P2")).thenReturn(FileUtil.asString("patients/P2.json"));
 
-        mciFeedProcessor.pullLatest();
-
-        Thread.sleep(10000);
+        TestSubscriber<String> subscriber = new TestSubscriber<>();
+        Observable<String> testPullObservable = mciFeedProcessor.pullLatestForTest();
+        testPullObservable.subscribe(subscriber);
+        subscriber.awaitTerminalEvent();
+        subscriber.assertNoErrors();
+        subscriber.assertCompleted();
 
         Patient patientP1 = new Patient();
         patientP1.setHealthId("P1");
@@ -104,10 +107,15 @@ public class MCIFeedProcessorIT {
 
         assertPatient(patientP2, queryUtils.fetchPatient("P2"));
 
-        Iterable<EncounterBundle> encounters = encounterRepository.getEncounterBundles("P2").toBlocking().toIterable();
+        TestSubscriber<EncounterBundle> encounterBundleSubscriber = new TestSubscriber<>();
+        Observable<EncounterBundle> encounterObservable = encounterRepository.getEncounterBundles("P2");
+        encounterObservable.subscribe(encounterBundleSubscriber);
 
-        ArrayList<EncounterBundle> encountersForP2 = Lists.newArrayList(encounters);
+        encounterBundleSubscriber.awaitTerminalEvent();
+        encounterBundleSubscriber.assertNoErrors();
+        encounterBundleSubscriber.assertCompleted();
 
+        List<EncounterBundle> encountersForP2 = encounterBundleSubscriber.getOnNextEvents();
         assertThat(encountersForP2.size(), is(1));
         queryUtils.assertEncounter(encountersForP2.get(0), "E1", "P2", "E1 for P2");
     }
@@ -122,11 +130,13 @@ public class MCIFeedProcessorIT {
         queryUtils.insertPatient("P2");
         when(mciWebClient.getFeed(properties.getMciPatientUpdateFeedUrl())).thenReturn(FileUtil.asString("feeds/mergeFeed.xml"));
         when(mciWebClient.getFeed(new URI("http://127.0.0.1:8081/api/v1/feed/patients?last_marker=end"))).thenReturn(FileUtil.asString("feeds/emptyFeed.xml"));
-        when(mciWebClient.getPatient("P2")).thenReturn(FileUtil.asString("patients/P2.json"));
 
-        mciFeedProcessor.pullLatest();
-
-        Thread.sleep(10000);
+        TestSubscriber<String> subscriber = new TestSubscriber<>();
+        Observable<String> testPullObservable = mciFeedProcessor.pullLatestForTest();
+        testPullObservable.subscribe(subscriber);
+        subscriber.awaitTerminalEvent();
+        subscriber.assertNoErrors();
+        subscriber.assertCompleted();
 
         Patient patientP1 = new Patient();
         patientP1.setHealthId("P1");
@@ -140,9 +150,15 @@ public class MCIFeedProcessorIT {
 
         assertPatient(patientP2, queryUtils.fetchPatient("P2"));
 
-        Iterable<EncounterBundle> encounters = encounterRepository.getEncounterBundles("P2").toBlocking().toIterable();
+        TestSubscriber<EncounterBundle> encounterBundleSubscriber = new TestSubscriber<>();
+        Observable<EncounterBundle> encounterObservable = encounterRepository.getEncounterBundles("P2");
+        encounterObservable.subscribe(encounterBundleSubscriber);
 
-        ArrayList<EncounterBundle> encountersForP2 = Lists.newArrayList(encounters);
+        encounterBundleSubscriber.awaitTerminalEvent();
+        encounterBundleSubscriber.assertNoErrors();
+        encounterBundleSubscriber.assertCompleted();
+
+        List<EncounterBundle> encountersForP2 = encounterBundleSubscriber.getOnNextEvents();
 
         assertThat(encountersForP2.size(), is(1));
         queryUtils.assertEncounter(encountersForP2.get(0), "E1", "P2", "E1 for P2");

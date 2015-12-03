@@ -127,12 +127,12 @@ public class PatientUpdateEventWorker implements EventWorker {
                 LOG.debug(String.format("Patient %s %s updated", patientUpdate.getHealthId(), patientUpdated ? "" :
                         "not"));
                 if (patientUpdated) {
-                    Observable<Boolean> mergedWithPatientExistsCheckObservable = ensurePresent((String) patientUpdate.getPatientMergeChanges().get(MERGED_WITH_COLUMN_NAME));
-                    return mergedWithPatientExistsCheckObservable.flatMap(new Func1<Boolean, Observable<Boolean>>() {
+                    Observable<Patient> mergedWithPatientObservable = ensurePresent((String) patientUpdate.getPatientMergeChanges().get(MERGED_WITH_COLUMN_NAME));
+                    return mergedWithPatientObservable.flatMap(new Func1<Patient, Observable<Boolean>>() {
                         @Override
-                        public Observable<Boolean> call(Boolean patientExists) {
-                            if (patientExists) {
-                                return encounterRepository.applyMerge(patientUpdate);
+                        public Observable<Boolean> call(Patient patientMergedWith) {
+                            if (patientMergedWith != null) {
+                                return encounterRepository.applyMerge(patientUpdate, patientMergedWith);
                             }
                             return Observable.just(false);
                         }
@@ -149,31 +149,31 @@ public class PatientUpdateEventWorker implements EventWorker {
 
     }
 
-    public Observable<Boolean> ensurePresent(final String healthId) {
-        Observable<Boolean> patientPresent = patientRepository.findPatient(healthId);
-        return patientPresent.flatMap(new Func1<Boolean, Observable<Boolean>>() {
+    public Observable<Patient> ensurePresent(final String healthId) {
+        Observable<Patient> patientPresent = patientRepository.fetchPatient(healthId);
+        return patientPresent.flatMap(new Func1<Patient, Observable<Patient>>() {
             @Override
-            public Observable<Boolean> call(Boolean patientPresent) {
-                if (patientPresent) return Observable.just(true);
+            public Observable<Patient> call(Patient patient) {
+                if (patient != null) return Observable.just(patient);
                 return Observable.just(findRemote(healthId));
             }
         });
     }
 
-    private Boolean findRemote(final String healthId) {
+    private Patient findRemote(final String healthId) {
         try {
 //            System.out.println("Downloading patient:" + healthId);
             String patientResponse = mciWebClient.getPatient(healthId);
             if (patientResponse != null) {
                 Patient patient = readFrom(patientResponse, Patient.class);
                 Observable<Boolean> saveStatus = patientRepository.save(patient);
-                return saveStatus.toBlocking().first();
+                return (saveStatus.toBlocking().first()) ? patient : null;
             }
 
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        return false;
+        return null;
     }
 
     private static String extractContent(String content) {

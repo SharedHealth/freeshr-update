@@ -18,7 +18,7 @@ public class ShrUpdateConfiguration {
     private String patientUpdateFeedContextPath;
 
     @Value("${PATIENT_CONTEXT_PATH}")
-    private String mciPatientContextPath;
+    private String patientContextPath;
 
     @Value("${CASSANDRA_KEYSPACE}")
     private String cassandraKeySpace;
@@ -121,7 +121,7 @@ public class ShrUpdateConfiguration {
     }
 
     public URI getMciPatientPath(String healthId) {
-        return URI.create(StringUtils.ensureSuffix(mciServerUrl + mciPatientContextPath, "/") + healthId);
+        return URI.create(StringUtils.ensureSuffix(mciServerUrl + patientContextPath, "/") + healthId);
     }
 
     public String getDbUrl() {
