@@ -6,11 +6,15 @@ import com.datastax.driver.core.Row;
 import com.datastax.driver.core.querybuilder.Insert;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.datastax.driver.core.querybuilder.Select;
+import org.apache.commons.lang3.*;
+import org.apache.commons.lang3.StringUtils;
 import org.sharedhealth.freeshrUpdate.domain.EncounterBundle;
 import org.springframework.cassandra.core.CqlOperations;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
 
 import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
 import static org.junit.Assert.assertEquals;
@@ -41,7 +45,7 @@ public class QueryUtils {
         return rs.all();
     }
 
-    public List<Row> fetchCatchmentFeed(String divisionId, String concatenatedDistrictId, int year){
+    public List<Row> fetchCatchmentFeed(String divisionId, String concatenatedDistrictId, int year) {
         Select select = QueryBuilder.select().all()
                 .from("freeshr", ENCOUNTER_BY_CATCHMENT_TABLE_NAME);
         select.where(eq("division_id", divisionId))
@@ -57,10 +61,11 @@ public class QueryUtils {
         cqlOperations.execute(insert);
     }
 
-    public void insertEncounterByCatchment(String encounterId, String divisionId, String concatenatedDistrictId, Date createdAt) {
+    public void insertEncounterByCatchment(String encounterId, String divisionId, String concatenatedDistrictId, String concatenatedUpazillaId, Date createdAt) {
         Insert insert = QueryBuilder.insertInto("freeshr", "enc_by_catchment")
                 .value("encounter_id", encounterId).value("division_id", divisionId)
                 .value("district_id", concatenatedDistrictId)
+                .value("upazila_id", concatenatedUpazillaId)
                 .value("year", DateUtil.getYearOf(createdAt))
                 .value("created_at", TimeUuidUtil.uuidForDate(createdAt));
         cqlOperations.execute(insert);
@@ -77,7 +82,7 @@ public class QueryUtils {
         return rs.all().get(0);
     }
 
-    public void trucateAllTables(){
+    public void trucateAllTables() {
         cqlOperations.execute("truncate encounter");
         cqlOperations.execute("truncate enc_by_catchment");
         cqlOperations.execute("truncate enc_by_patient");
@@ -98,4 +103,16 @@ public class QueryUtils {
         assertEquals(confidentiality, encounterRow.getString("patient_confidentiality"));
     }
 
+    public void assertEncounterByCatchmentRow(Row encounterByCatchmentRow, HashMap<String, String> expectedEncounterByCatchment) {
+        assertEquals(expectedEncounterByCatchment.get("encounter_id"), encounterByCatchmentRow.getString("encounter_id"));
+        assertEquals(expectedEncounterByCatchment.get("division_id"), encounterByCatchmentRow.getString("division_id"));
+        assertEquals(expectedEncounterByCatchment.get("district_id"), encounterByCatchmentRow.getString("district_id"));
+        assertEquals(expectedEncounterByCatchment.get("upazila_id"), encounterByCatchmentRow.getString("upazila_id"));
+        assertEquals(Integer.valueOf(expectedEncounterByCatchment.get("year")).intValue(), encounterByCatchmentRow.getInt("year"));
+        assertEquals(expectedEncounterByCatchment.get("created_at"), encounterByCatchmentRow.getUUID("created_at").toString());
+
+        String expectedMergedAt = expectedEncounterByCatchment.get("merged_at");
+        if (expectedMergedAt != null)
+            assertEquals(expectedMergedAt, encounterByCatchmentRow.getUUID("merged_at").toString());
+    }
 }

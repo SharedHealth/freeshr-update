@@ -25,5 +25,6 @@ public class KeySpaceUtils {
     public static final String ENCOUNTER_CONTENT_COLUMN_PREFIX = "content_";
 
     public static final String CREATED_AT_COLUMN_NAME = "created_at";
+    public static final String MERGED_AT_COLUMN_NAME = "merged_at";
 
 }

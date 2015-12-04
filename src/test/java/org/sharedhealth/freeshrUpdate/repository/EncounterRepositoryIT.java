@@ -16,6 +16,7 @@ import org.sharedhealth.freeshrUpdate.domain.Patient;
 import org.sharedhealth.freeshrUpdate.domain.PatientUpdate;
 import org.sharedhealth.freeshrUpdate.mothers.PatientUpdateMother;
 import org.sharedhealth.freeshrUpdate.utils.QueryUtils;
+import org.sharedhealth.freeshrUpdate.utils.TimeUuidUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cassandra.core.CqlOperations;
@@ -26,6 +27,7 @@ import rx.observers.TestSubscriber;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 
 import static java.util.Arrays.asList;
@@ -87,8 +89,11 @@ public class EncounterRepositoryIT {
 
     @Test
     public void shouldMergeEncountersForMergePatientUpdateFeed() throws Exception {
-        Date jul8 = new DateTime(2015, 07, 8, 0, 0).toDate();
-        Date jul9 = new DateTime(2015, 07, 9, 0, 0).toDate();
+        final Date jul8 = new DateTime(2015, 07, 8, 0, 0).toDate();
+        final Date jul9 = new DateTime(2015, 07, 9, 0, 0).toDate();
+        final Date jul10 = new DateTime(2015, 07, 10, 0, 0).toDate();
+
+        org.joda.time.DateTimeUtils.setCurrentMillisFixed(jul10.getTime());
 
         queryUtils.insertEncByPatient("E1", "P1", jul8);
         queryUtils.insertEncByPatient("E2", "P1", jul9);
@@ -98,9 +103,9 @@ public class EncounterRepositoryIT {
         queryUtils.insertEncounter("E2", "P1", jul9, "e2 content for P1", queryBuilder.getEncounterContentColumnName());
         queryUtils.insertEncounter("E3", "P2", jul8, "e3 content for P2", queryBuilder.getEncounterContentColumnName());
 
-        queryUtils.insertEncounterByCatchment("E1", "D1", "D1d1", jul8);
-        queryUtils.insertEncounterByCatchment("E2", "D1", "D1d1", jul9);
-        queryUtils.insertEncounterByCatchment("E3", "D2", "D2d2", jul8);
+        queryUtils.insertEncounterByCatchment("E1", "D1", "D1d1","D1d1u1" , jul8);
+        queryUtils.insertEncounterByCatchment("E2", "D1", "D1d1","D1d1u1", jul9);
+        queryUtils.insertEncounterByCatchment("E3", "D2", "D2d2","D2d2u2" , jul8);
 
         assertEquals(2, queryUtils.fetchCatchmentFeed("D1", "D1d1", 2015).size());
         assertEquals(1, queryUtils.fetchCatchmentFeed("D2", "D2d2", 2015).size());
@@ -110,6 +115,7 @@ public class EncounterRepositoryIT {
         Address d1D1 = new Address();
         d1D1.setDistrictId("d1");
         d1D1.setDivisionId("D1");
+        d1D1.setUpazilaId("u1");
         patientMergedWith.setAddress(d1D1);
 
         TestSubscriber<Boolean> mergeResultSubscriber = new TestSubscriber<>();
@@ -127,7 +133,35 @@ public class EncounterRepositoryIT {
         assertEquals(3, queryUtils.fetchEncounterByPatientFeed("P1").size());
         assertEquals(1, queryUtils.fetchEncounterByPatientFeed("P2").size());
 
-        assertEquals(3, queryUtils.fetchCatchmentFeed("D1", "D1d1", 2015).size());
+        List<Row> rows = queryUtils.fetchCatchmentFeed("D1", "D1d1", 2015);
+        assertEquals(3, rows.size());
+        queryUtils.assertEncounterByCatchmentRow(rows.get(0), new HashMap<String, String>() {{
+            put("encounter_id", "E1");
+            put("division_id", "D1");
+            put("district_id", "D1d1");
+            put("upazila_id", "D1d1u1");
+            put("year", "2015");
+            put("created_at", TimeUuidUtil.uuidForDate(jul8).toString());
+        }});
+
+        queryUtils.assertEncounterByCatchmentRow(rows.get(1), new HashMap<String, String>() {{
+            put("encounter_id", "E2");
+            put("division_id", "D1");
+            put("district_id", "D1d1");
+            put("upazila_id", "D1d1u1");
+            put("year", "2015");
+            put("created_at", TimeUuidUtil.uuidForDate(jul9).toString());
+        }});
+
+        queryUtils.assertEncounterByCatchmentRow(rows.get(2), new HashMap<String, String>() {{
+            put("encounter_id", "E3");
+            put("division_id", "D1");
+            put("district_id", "D1d1");
+            put("upazila_id", "D1d1u1");
+            put("year", "2015");
+            put("created_at", TimeUuidUtil.uuidForDate(jul10).toString());
+            put("merged_at", TimeUuidUtil.uuidForDate(jul10).toString());
+        }});
     }
 
     @Test
@@ -196,9 +230,9 @@ public class EncounterRepositoryIT {
         queryUtils.insertEncByPatient("E2", "P1", jul19);
         queryUtils.insertEncByPatient("E3", "P1", jul20);
 
-        queryUtils.insertEncounterByCatchment("E1", "20", "2015", jul18);
-        queryUtils.insertEncounterByCatchment("E2", "20", "2015", jul19);
-        queryUtils.insertEncounterByCatchment("E3", "20", "2015", jul20);
+        queryUtils.insertEncounterByCatchment("E1", "20", "2015", "201502", jul18);
+        queryUtils.insertEncounterByCatchment("E2", "20", "2015", "201502", jul19);
+        queryUtils.insertEncounterByCatchment("E3", "20", "2015", "201502", jul20);
 
         assertThat(queryUtils.fetchCatchmentFeed("20", "2015", 2015).size(), is(3));
         assertThat(queryUtils.fetchCatchmentFeed("40", "4036", 2015).size(), is(0));

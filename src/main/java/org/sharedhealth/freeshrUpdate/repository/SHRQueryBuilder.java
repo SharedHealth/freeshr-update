@@ -110,17 +110,18 @@ public class SHRQueryBuilder {
         Address addressChange = patientUpdate.getChangeSet().getAddressChange();
         UUID createdAt = TimeUuidUtil.uuidForDate(new Date());
 
-        Insert insertEncByCatchmentStmt = getInsEncByCatchmentStmt(addressChange.getDivisionId(), addressChange.getConcatenatedDistrictId(), addressChange.getConcatenatedUpazilaId(), addressChange.getConcatenatedCityCorporationId(), addressChange.getConcatenatedWardId(), encounterDetail.getEncounterId(), createdAt);
+        Insert insertEncByCatchmentStmt = getInsEncByCatchmentStmt(addressChange.getDivisionId(), addressChange.getConcatenatedDistrictId(), addressChange.getConcatenatedUpazilaId(), addressChange.getConcatenatedCityCorporationId(), addressChange.getConcatenatedWardId(), encounterDetail.getEncounterId(), createdAt, null);
         return insertEncByCatchmentStmt;
     }
 
-    public Insert getInsEncByCatchmentStmt(String divisionId, String concatenatedDistrictId, String concatenatedUpazillaId, String concatenatedCityCorporationId, String concatenatedWardId, String encounterId, UUID createdAt) {
+    public Insert getInsEncByCatchmentStmt(String divisionId, String concatenatedDistrictId, String concatenatedUpazillaId, String concatenatedCityCorporationId, String concatenatedWardId, String encounterId, UUID createdAt, UUID mergedAt) {
         return QueryBuilder.insertInto(configuration.getCassandraKeySpace(), ENCOUNTER_BY_CATCHMENT_TABLE_NAME)
                                     .value(DIVISION_ID_COLUMN_NAME, divisionId)
                                     .value(DISTRICT_ID_COLUMN_NAME, concatenatedDistrictId)
                                     .value(UPAZILA_ID_COLUMN_NAME, concatenatedUpazillaId)
                                     .value(YEAR, Calendar.getInstance().get(Calendar.YEAR))
                                     .value(CREATED_AT_COLUMN_NAME, createdAt)
+                                    .value(MERGED_AT_COLUMN_NAME, mergedAt)
                                     .value(CITY_CORPORATION_ID_COLUMN_NAME, StringUtils.defaultString(concatenatedCityCorporationId))
                                     .value(UNION_OR_URBAN_COLUMN_NAME, StringUtils.defaultString(concatenatedWardId))
                                     .value(ENCOUNTER_ID_COLUMN_NAME, encounterId);

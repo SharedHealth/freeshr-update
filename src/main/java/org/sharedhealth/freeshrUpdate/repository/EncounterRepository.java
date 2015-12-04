@@ -8,6 +8,7 @@ import com.datastax.driver.core.querybuilder.Batch;
 import com.datastax.driver.core.querybuilder.Insert;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.datastax.driver.core.querybuilder.Update;
+import org.joda.time.DateTimeUtils;
 import org.sharedhealth.freeshrUpdate.domain.Address;
 import org.sharedhealth.freeshrUpdate.domain.EncounterBundle;
 import org.sharedhealth.freeshrUpdate.domain.Patient;
@@ -134,7 +135,7 @@ public class EncounterRepository {
         String healthIdToMergeWith = patientToBeMergeWith.getHealthId();
         encounterBundle.associateTo(healthIdToMergeWith);
 
-        UUID createdAt = TimeUuidUtil.uuidForDate(new Date());
+        UUID createdAt = TimeUuidUtil.uuidForDate(DateTimeUtils.currentTimeMillis());
         Update updateEncounterStmt = shrQueryBuilder.updateEncounterOnMergeStatement(encounterBundle, healthIdToMergeWith);
 
         Insert insertEncByPatientStatement = shrQueryBuilder.insertEncByPatientStatement(encounterBundle, createdAt, healthIdToMergeWith);
@@ -143,7 +144,7 @@ public class EncounterRepository {
 
         if(address != null){
         Insert insertEncByCatchmentStmt = shrQueryBuilder.getInsEncByCatchmentStmt(address.getDivisionId(), address.getConcatenatedDistrictId(), address.getConcatenatedUpazilaId(), address.getConcatenatedCityCorporationId(),
-                address.getConcatenatedWardId(), encounterBundle.getEncounterId(), createdAt);
+                address.getConcatenatedWardId(), encounterBundle.getEncounterId(), createdAt, createdAt);
             batch.add(insertEncByCatchmentStmt);
 
         }
