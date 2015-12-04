@@ -3,11 +3,12 @@ package org.sharedhealth.freeshrUpdate.eventWorker;
 import com.sun.syndication.feed.atom.Content;
 import com.sun.syndication.feed.atom.Entry;
 import org.ict4h.atomfeed.client.domain.Event;
-import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 import org.sharedhealth.freeshrUpdate.client.MciWebClient;
 import org.sharedhealth.freeshrUpdate.domain.Address;
 import org.sharedhealth.freeshrUpdate.domain.Patient;
@@ -26,8 +27,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
-import static org.mockito.MockitoAnnotations.initMocks;
 
+@RunWith(MockitoJUnitRunner.class)
 public class PatientUpdateEventWorkerTest {
     private static final String ATOMFEED_MEDIA_TYPE = "application/vnd.atomfeed+xml";
 
@@ -40,11 +41,6 @@ public class PatientUpdateEventWorkerTest {
 
     @InjectMocks
     private PatientUpdateEventWorker patientUpdateEventWorker = new PatientUpdateEventWorker();
-
-    @Before
-    public void setUp() throws Exception {
-        initMocks(this);
-    }
 
     @Test
     public void shouldDeserializePatientUpdates() throws Exception {
@@ -159,7 +155,8 @@ public class PatientUpdateEventWorkerTest {
 
         when(patientRepository.mergeIfFound(any(PatientUpdate.class))).thenReturn(Observable.just(true));
         when(patientRepository.fetchPatient("P2")).thenReturn(Observable.<Patient>just(null));
-        when(mciWebClient.getPatient("P2")).thenReturn(FileUtil.asString("patients/p2.json"));
+        String patientResponse = FileUtil.asString("patients/P2.json");
+        when(mciWebClient.getPatient("P2")).thenReturn(patientResponse);
         when(patientRepository.save(any(Patient.class))).thenReturn(Observable.just(true));
 
         Entry entry = new Entry();
@@ -179,7 +176,8 @@ public class PatientUpdateEventWorkerTest {
 
         ArgumentCaptor<Patient> patientCaptor = ArgumentCaptor.forClass(Patient.class);
         verify(patientRepository, times(1)).save(patientCaptor.capture());
-        assertEquals(patientCaptor.getValue(), StringUtils.readFrom(FileUtil.asString("patients/P2.json"), Patient.class));
+        Patient expectedPatient = StringUtils.readFrom(patientResponse, Patient.class);
+        assertEquals(expectedPatient, patientCaptor.getValue());
 
         verify(encounterRepository, times(1)).applyMerge(eq(actualUpdateApplied), eq(patientCaptor.getValue()));
     }
@@ -222,7 +220,8 @@ public class PatientUpdateEventWorkerTest {
 
         when(patientRepository.mergeIfFound(any(PatientUpdate.class))).thenReturn(Observable.just(true));
         when(patientRepository.fetchPatient("P2")).thenReturn(Observable.<Patient>just(null));
-        when(mciWebClient.getPatient("P2")).thenReturn(FileUtil.asString("patients/P2.json"));
+        String patientResponse = FileUtil.asString("patients/P2.json");
+        when(mciWebClient.getPatient("P2")).thenReturn(patientResponse);
         when(patientRepository.save(any(Patient.class))).thenReturn(Observable.just(false));
 
         Entry entry = new Entry();

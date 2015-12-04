@@ -54,7 +54,11 @@ public class MCIFeedProcessorIT {
     PatientUpdateEventWorker patientUpdateEventWorker;
 
     @Autowired
-    @InjectMocks
+    ShrUpdateConfiguration shrUpdateConfiguration;
+
+    @Autowired
+    AtomFeedSpringTransactionManager transactionManager;
+
     private MciFeedProcessor mciFeedProcessor;
 
     @Autowired
@@ -76,6 +80,7 @@ public class MCIFeedProcessorIT {
     public void setUp() throws Exception {
         initMocks(this);
         queryUtils = new QueryUtils(cqlOperations);
+        mciFeedProcessor =  new MciFeedProcessor(transactionManager, mciWebClient,patientUpdateEventWorker,shrUpdateConfiguration);
     }
 
     @Test
@@ -86,7 +91,8 @@ public class MCIFeedProcessorIT {
 
         when(mciWebClient.getFeed(properties.getMciPatientUpdateFeedUrl())).thenReturn(FileUtil.asString("feeds/mergeFeed.xml"));
         when(mciWebClient.getFeed(new URI("http://127.0.0.1:8081/api/v1/feed/patients?last_marker=end"))).thenReturn(FileUtil.asString("feeds/emptyFeed.xml"));
-        when(mciWebClient.getPatient("P2")).thenReturn(FileUtil.asString("patients/P2.json"));
+        String toBeMergedWithPatient = FileUtil.asString("patients/P2.json");
+        when(mciWebClient.getPatient("P2")).thenReturn(toBeMergedWithPatient);
 
         TestSubscriber<String> subscriber = new TestSubscriber<>();
         Observable<String> testPullObservable = mciFeedProcessor.pullLatestForTest();
@@ -123,7 +129,7 @@ public class MCIFeedProcessorIT {
     @Test
     @Ignore
     //Please donot delete this test.This runs individually, but fails on running the entire test file
-    public void shouldMergedWithExistingPatient() throws Exception {
+    public void shouldMergeWithExistingPatient() throws Exception {
         queryUtils.insertPatient("P1");
         queryUtils.insertEncounter("E1", "P1", new DateTime(2015, 11, 25, 0, 0, 0).toDate(), "E1 for P1", queryBuilder.getEncounterContentColumnName());
         queryUtils.insertEncByPatient("E1", "P1", new DateTime(2015, 11, 25, 0, 0, 0).toDate());

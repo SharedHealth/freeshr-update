@@ -32,12 +32,6 @@ public class PatientUpdateEventWorker implements EventWorker {
     public PatientUpdateEventWorker() {
     }
 
-    public PatientUpdateEventWorker(PatientRepository patientRepository, EncounterRepository encounterRepository, MciWebClient mciWebClient) {
-        this.patientRepository = patientRepository;
-        this.encounterRepository = encounterRepository;
-        this.mciWebClient = mciWebClient;
-    }
-
     @Override
     public void process(Event event) {
         try {

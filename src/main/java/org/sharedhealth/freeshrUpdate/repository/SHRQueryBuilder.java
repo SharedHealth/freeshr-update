@@ -66,11 +66,12 @@ public class SHRQueryBuilder {
         return updateEncounter;
     }
 
-    public Insert insertEncByPatientStatement(EncounterBundle encounterBundle, UUID createdAt, String healthIdToMergeWith){
+    public Insert insertEncByPatientStatement(EncounterBundle encounterBundle, UUID createdAt, String healthIdToMergeWith, UUID mergedAt){
         Insert insert = QueryBuilder.insertInto(configuration.getCassandraKeySpace(), ENCOUNTER_BY_PATIENT_TABLE_NAME)
                                     .value(ENCOUNTER_ID_COLUMN_NAME, encounterBundle.getEncounterId())
                                     .value(HEALTH_ID_COLUMN_NAME, healthIdToMergeWith)
-                                    .value(CREATED_AT_COLUMN_NAME, createdAt);
+                                    .value(CREATED_AT_COLUMN_NAME, createdAt)
+                                    .value(MERGED_AT_COLUMN_NAME, mergedAt);
 
         return insert;
     }

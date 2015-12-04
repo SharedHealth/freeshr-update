@@ -233,10 +233,10 @@ public class SHRQueryBuilderTest {
 
         EncounterBundle encounterBundle = new EncounterBundle("E1", "P1", "E1 content", null);
 
-        Statement insert = new SHRQueryBuilder(configuration).insertEncByPatientStatement(encounterBundle, uuid, "P2");
-        String expectedQuery = String.format("INSERT INTO keyspace.%s(%s,%s,%s) VALUES ('%s','%s',%s);",
-                            ENCOUNTER_BY_PATIENT_TABLE_NAME, ENCOUNTER_ID_COLUMN_NAME, HEALTH_ID_COLUMN_NAME, CREATED_AT_COLUMN_NAME,
-                            encounterBundle.getEncounterId(), "P2", uuid);
+        Statement insert = new SHRQueryBuilder(configuration).insertEncByPatientStatement(encounterBundle, uuid, "P2", uuid);
+        String expectedQuery = String.format("INSERT INTO keyspace.%s(%s,%s,%s,%s) VALUES ('%s','%s',%s,%s);",
+                            ENCOUNTER_BY_PATIENT_TABLE_NAME, ENCOUNTER_ID_COLUMN_NAME, HEALTH_ID_COLUMN_NAME, CREATED_AT_COLUMN_NAME,MERGED_AT_COLUMN_NAME,
+                            encounterBundle.getEncounterId(), "P2", uuid, uuid);
 
         assertEquals(expectedQuery, insert.toString());
 

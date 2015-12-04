@@ -3,6 +3,7 @@ package org.sharedhealth.freeshrUpdate.repository;
 import com.datastax.driver.core.Row;
 import com.google.common.collect.Lists;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -25,10 +26,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import rx.Observable;
 import rx.observers.TestSubscriber;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 import static java.util.Arrays.asList;
 import static org.hamcrest.Matchers.is;
@@ -89,10 +87,16 @@ public class EncounterRepositoryIT {
 
     @Test
     public void shouldMergeEncountersForMergePatientUpdateFeed() throws Exception {
+
+        // P1 from D1d1 has E1,E2
+        // P2 from D2de has E3
+        // P2 is merged with P1
+        // P2's encounters are added to P1 after merge
+        // P2's encounters are added to D1d1 catchement after merge
+
         final Date jul8 = new DateTime(2015, 07, 8, 0, 0).toDate();
         final Date jul9 = new DateTime(2015, 07, 9, 0, 0).toDate();
         final Date jul10 = new DateTime(2015, 07, 10, 0, 0).toDate();
-
         org.joda.time.DateTimeUtils.setCurrentMillisFixed(jul10.getTime());
 
         queryUtils.insertEncByPatient("E1", "P1", jul8);
@@ -162,11 +166,15 @@ public class EncounterRepositoryIT {
             put("created_at", TimeUuidUtil.uuidForDate(jul10).toString());
             put("merged_at", TimeUuidUtil.uuidForDate(jul10).toString());
         }});
+
     }
 
     @Test
     public void shouldAssociateAnEncounterWithNewHealthId() {
-        EncounterBundle encounterBundle = new EncounterBundle("E1", "P1", "E1 content for P1", new DateTime(2015, 07, 8, 0, 0).toDate());
+        final Date jul10 = new DateTime(2015, 07, 10, 0, 0).toDate();
+        org.joda.time.DateTimeUtils.setCurrentMillisFixed(jul10.getTime());
+
+        EncounterBundle encounterBundle = new EncounterBundle("E1", "P1", "E1 content for P1",jul10);
         queryUtils.insertEncounter(encounterBundle.getEncounterId(), encounterBundle.getHealthId(), encounterBundle.getReceivedAt(), encounterBundle.getEncounterContent(), queryBuilder.getEncounterContentColumnName());
         Row encounterBeforeMerge = queryUtils.fetchEncounter("E1");
         queryUtils.assertEncounterRow(encounterBeforeMerge, "E1", "P1", "E1 content for P1", null);
@@ -181,6 +189,7 @@ public class EncounterRepositoryIT {
         assertThat(encByPatient.size(), is(1));
         assertThat(encByPatient.get(0).getString("encounter_id"), is("E1"));
         assertThat(encByPatient.get(0).getString("health_id"), is("P2"));
+        assertThat(encByPatient.get(0).getUUID("merged_at").toString(), is(TimeUuidUtil.uuidForDate(jul10).toString()));
     }
 
     @Test
@@ -267,5 +276,6 @@ public class EncounterRepositoryIT {
     @After
     public void tearDown() {
         queryUtils.trucateAllTables();
+        DateTimeUtils.setCurrentMillisSystem();
     }
 }

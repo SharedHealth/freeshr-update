@@ -138,7 +138,7 @@ public class EncounterRepository {
         UUID createdAt = TimeUuidUtil.uuidForDate(DateTimeUtils.currentTimeMillis());
         Update updateEncounterStmt = shrQueryBuilder.updateEncounterOnMergeStatement(encounterBundle, healthIdToMergeWith);
 
-        Insert insertEncByPatientStatement = shrQueryBuilder.insertEncByPatientStatement(encounterBundle, createdAt, healthIdToMergeWith);
+        Insert insertEncByPatientStatement = shrQueryBuilder.insertEncByPatientStatement(encounterBundle, createdAt, healthIdToMergeWith, createdAt);
         Batch batch = QueryBuilder.batch(updateEncounterStmt, insertEncByPatientStatement);
         Address address = patientToBeMergeWith.getAddress();
 
