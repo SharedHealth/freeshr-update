@@ -109,7 +109,7 @@ public class SHRQueryBuilder {
 
     public Statement insertCatchmentFeedForAddressChange(PatientUpdate patientUpdate, EncounterDetail encounterDetail){
         Address addressChange = patientUpdate.getChangeSet().getAddressChange();
-        UUID createdAt = TimeUuidUtil.uuidForDate(new Date());
+        UUID createdAt = TimeUuidUtil.getTimeUUID();
 
         Insert insertEncByCatchmentStmt = getInsEncByCatchmentStmt(addressChange.getDivisionId(), addressChange.getConcatenatedDistrictId(), addressChange.getConcatenatedUpazilaId(), addressChange.getConcatenatedCityCorporationId(), addressChange.getConcatenatedWardId(), encounterDetail.getEncounterId(), createdAt, null);
         return insertEncByCatchmentStmt;

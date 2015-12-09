@@ -23,7 +23,6 @@ import org.springframework.stereotype.Component;
 import rx.Observable;
 import rx.functions.Func0;
 import rx.functions.Func1;
-import rx.functions.FuncN;
 import rx.schedulers.Schedulers;
 
 import java.util.ArrayList;
@@ -60,9 +59,8 @@ public class EncounterRepository {
         return encountersForPatient.flatMap(new Func1<List<EncounterDetail>, Observable<Boolean>>() {
             @Override
             public Observable<Boolean> call(List<EncounterDetail> encountersDetails) {
-                List<Observable<ResultSet>> observables = new ArrayList<>();
+                BatchStatement batchStatement = new BatchStatement();
                 for (EncounterDetail encounterDetail : encountersDetails) {
-                    BatchStatement batchStatement = new BatchStatement();
                     if(patientUpdate.hasConfidentialChange()){
                         Statement updateEncounterQuery = shrQueryBuilder.updateEncounterQuery(patientUpdate, encounterDetail);
                         batchStatement.add(updateEncounterQuery);
@@ -72,13 +70,13 @@ public class EncounterRepository {
                         batchStatement.add(insertCatchmentFeedForAddressChange);
 
                     }
-                    observables.add(Observable.from(cqlOperations.executeAsynchronously(batchStatement)));
                 }
-                return Observable.zip(observables, new FuncN<Boolean>() {
+                Observable<ResultSet> updateObservable = Observable.from(cqlOperations.executeAsynchronously(batchStatement));
+                return updateObservable.flatMap(new Func1<ResultSet, Observable<Boolean>>() {
                     @Override
-                    public Boolean call(Object... args) {
+                    public Observable<Boolean> call(ResultSet rows) {
                         LOG.debug("Updated all encounters for patient %s", patientUpdate.getHealthId());
-                        return true;
+                        return Observable.just(true);
                     }
                 });
             }

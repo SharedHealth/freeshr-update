@@ -6,7 +6,6 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeUtils;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.sharedhealth.freeshrUpdate.config.SHREnvironmentMock;
@@ -218,7 +217,6 @@ public class EncounterRepositoryIT {
     }
 
     @Test
-    @Ignore
     public void shouldAddEntriesToCatchmentFeedForAddressChange() throws Exception {
         Address address = new Address();
         address.setDivisionId("40");
@@ -262,13 +260,13 @@ public class EncounterRepositoryIT {
         
         assertThat(queryUtils.fetchCatchmentFeed("20", "2015", 2015).size(), is(3));
         List<Row> rows = queryUtils.fetchCatchmentFeed("40", "4036", 2015);
+        assertThat(rows.size(), is(3));
         assertThat(rows.get(0).getString("upazila_id"), is("403618"));
         assertThat(rows.get(0).getString("city_corporation_id"), is("40361860"));
         assertThat(rows.get(0).getString("union_urban_ward_id"), is("4036186045"));
         assertThat(rows.get(0).getString("encounter_id"), is("E1"));
         assertThat(rows.get(1).getString("encounter_id"), is("E2"));
         assertThat(rows.get(2).getString("encounter_id"), is("E3"));
-        assertThat(rows.size(), is(3));
 
     }
 
