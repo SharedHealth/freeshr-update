@@ -7,13 +7,13 @@ import org.sharedhealth.freeshrUpdate.domain.Patient;
 import org.sharedhealth.freeshrUpdate.domain.PatientUpdate;
 import org.sharedhealth.freeshrUpdate.repository.EncounterRepository;
 import org.sharedhealth.freeshrUpdate.repository.PatientRepository;
+import org.sharedhealth.freeshrUpdate.repository.RxMaps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import rx.Observable;
 import rx.functions.Action1;
-import rx.functions.Func0;
 import rx.functions.Func1;
 
 import static org.sharedhealth.freeshrUpdate.utils.KeySpaceUtils.MERGED_WITH_COLUMN_NAME;
@@ -42,12 +42,13 @@ public class PatientUpdateEventWorker implements EventWorker {
                 applyUpdate(patientUpdate);
         } catch (Exception e) {
             LOG.error(e.getMessage());
+            throw new RuntimeException(e);
         }
     }
 
     private void merge(final PatientUpdate patientUpdate) {
         Observable<Boolean> savePatientResponse = patientRepository.mergeIfFound(patientUpdate);
-        Observable<Boolean> encounterMergeObservable = savePatientResponse.flatMap(onPatientMergeSuccess(patientUpdate), onError(), onCompleted());
+        Observable<Boolean> encounterMergeObservable = savePatientResponse.flatMap(onPatientMergeSuccess(patientUpdate), RxMaps.<Boolean>logAndForwardError(LOG), RxMaps.<Boolean>completeResponds());
         encounterMergeObservable.subscribe(new Action1<Boolean>() {
             @Override
             public void call(Boolean updated) {
@@ -60,7 +61,7 @@ public class PatientUpdateEventWorker implements EventWorker {
     private void applyUpdate(final PatientUpdate patientUpdate) {
         Observable<Boolean> savePatientResponse = patientRepository.applyUpdate(patientUpdate);
         Observable<Boolean> updateEncounterResponse = savePatientResponse.
-                flatMap(onSuccess(patientUpdate), onError(), onCompleted());
+                flatMap(onSuccess(patientUpdate), RxMaps.<Boolean>logAndForwardError(LOG), RxMaps.<Boolean>completeResponds());
 
         updateEncounterResponse.subscribe(new Action1<Boolean>() {
             @Override
@@ -75,25 +76,6 @@ public class PatientUpdateEventWorker implements EventWorker {
         return new Action1<Throwable>() {
             @Override
             public void call(Throwable throwable) {
-               throw new RuntimeException(throwable);
-            }
-        };
-    }
-
-    private Func0<Observable<Boolean>> onCompleted() {
-        return new Func0<Observable<Boolean>>() {
-            @Override
-            public Observable<Boolean> call() {
-                return null;
-            }
-        };
-    }
-
-    private Func1<Throwable, Observable<Boolean>> onError() {
-        return new Func1<Throwable, Observable<Boolean>>() {
-            @Override
-            public Observable<Boolean> call(Throwable throwable) {
-                LOG.error(throwable.getMessage());
                 throw new RuntimeException(throwable);
             }
         };
@@ -121,18 +103,22 @@ public class PatientUpdateEventWorker implements EventWorker {
                 LOG.debug(String.format("Patient %s %s updated", patientUpdate.getHealthId(), patientUpdated ? "" :
                         "not"));
                 if (patientUpdated) {
-                    Observable<Patient> mergedWithPatientObservable = ensurePresent((String) patientUpdate.getPatientMergeChanges().get(MERGED_WITH_COLUMN_NAME));
-                    return mergedWithPatientObservable.flatMap(new Func1<Patient, Observable<Boolean>>() {
-                        @Override
-                        public Observable<Boolean> call(Patient patientMergedWith) {
-                            if (patientMergedWith != null) {
-                                return encounterRepository.applyMerge(patientUpdate, patientMergedWith);
-                            }
-                            return Observable.just(false);
-                        }
-                    });
+                    Observable<Patient> mergedWithPatientFetchObservable = ensurePresent((String) patientUpdate.getPatientMergeChanges().get(MERGED_WITH_COLUMN_NAME));
+                    return mergedWithPatientFetchObservable.flatMap(onMergedWithPatientFetchSuccess(patientUpdate), RxMaps.<Boolean>logAndForwardError(LOG), RxMaps.<Boolean>completeResponds());
                 } else
                     return Observable.just(false);
+            }
+        };
+    }
+
+    private Func1<Patient, Observable<Boolean>> onMergedWithPatientFetchSuccess(final PatientUpdate patientUpdate) {
+        return new Func1<Patient, Observable<Boolean>>() {
+            @Override
+            public Observable<Boolean> call(Patient patientMergedWith) {
+                if (patientMergedWith != null) {
+                    return encounterRepository.applyMerge(patientUpdate, patientMergedWith);
+                }
+                return Observable.just(false);
             }
         };
     }
@@ -149,23 +135,22 @@ public class PatientUpdateEventWorker implements EventWorker {
             @Override
             public Observable<Patient> call(Patient patient) {
                 if (patient != null) return Observable.just(patient);
-                return Observable.just(findRemote(healthId));
+                try {
+                    return Observable.just(findRemote(healthId));
+                } catch (Exception e) {
+                    return Observable.error(e);
+                }
             }
         });
     }
 
-    private Patient findRemote(final String healthId) {
-        try {
+    private Patient findRemote(final String healthId) throws Exception {
 //            System.out.println("Downloading patient:" + healthId);
-            String patientResponse = mciWebClient.getPatient(healthId);
-            if (patientResponse != null) {
-                Patient patient = readFrom(patientResponse, Patient.class);
-                Observable<Boolean> saveStatus = patientRepository.save(patient);
-                return (saveStatus.toBlocking().first()) ? patient : null;
-            }
-
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        String patientResponse = mciWebClient.getPatient(healthId);
+        if (patientResponse != null) {
+            Patient patient = readFrom(patientResponse, Patient.class);
+            Observable<Boolean> saveStatus = patientRepository.save(patient);
+            return (saveStatus.toBlocking().first()) ? patient : null;
         }
         return null;
     }

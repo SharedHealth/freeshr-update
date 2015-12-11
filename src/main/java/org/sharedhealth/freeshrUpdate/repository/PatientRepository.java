@@ -14,7 +14,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cassandra.core.CqlOperations;
 import org.springframework.stereotype.Component;
 import rx.Observable;
-import rx.functions.Func0;
 import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 
@@ -46,7 +45,7 @@ public class PatientRepository {
                 LOG.debug(String.format("Patient %s %s found", healthId, patientExists ? "" : "not"));
                 return patientExists ? savePatientUpdate(patientUpdate.getHealthId(), patientUpdate.getPatientDetailChanges()) : Observable.just(false);
             }
-        }, onError(), onCompletion());
+        }, RxMaps.<Boolean>logAndForwardError(LOG), RxMaps.<Boolean>completeResponds());
     }
 
     public Observable<Boolean> mergeIfFound(final PatientUpdate patientUpdate) {
@@ -58,7 +57,7 @@ public class PatientRepository {
                 LOG.debug(String.format("Patient %s %s found", healthId, patientExists ? "" : "not"));
                 return patientExists ? savePatientUpdate(patientUpdate.getHealthId(), patientUpdate.getPatientMergeChanges()) : Observable.just(false);
             }
-        }, onError(), onCompletion());
+        }, RxMaps.<Boolean>logAndForwardError(LOG), RxMaps.<Boolean>completeResponds());
     }
 
     public Observable<Boolean> checkPatientExists(final String healthId) {
@@ -71,7 +70,7 @@ public class PatientRepository {
             public Observable<Boolean> call(ResultSet rows) {
                 return Observable.just(rows.one().getLong("count") > 0);
             }
-        }, onError(), onCompletion()).firstOrDefault(false);
+        }, RxMaps.<Boolean>logAndForwardError(LOG), RxMaps.<Boolean>completeResponds()).firstOrDefault(false);
     }
 
     public Observable<Patient> fetchPatient(String healthID) {
@@ -122,14 +121,14 @@ public class PatientRepository {
             public Observable<Boolean> call(ResultSet rows) {
                 return Observable.just(true);
             }
-        }, onError(), onCompletion()).firstOrDefault(false);
+        }, RxMaps.<Boolean>logAndForwardError(LOG), RxMaps.<Boolean>completeResponds()).firstOrDefault(false);
     }
 
     public Observable<Boolean> save(Patient patient) {
         if (patient.getHealthId() != null) {
 //            System.out.println("Saving patient:"+ patient.getHealthId());
             Observable<ResultSet> saveObservable = Observable.from(cqlOperations.executeAsynchronously(buildPatientInsertQuery(patient)), Schedulers.io());
-            return saveObservable.flatMap(RxMaps.respondOnNext(true), RxMaps.<Boolean>logAndForwardError(LOG), RxMaps.completeResponds(true));
+            return saveObservable.flatMap(RxMaps.respondOnNext(true), RxMaps.<Boolean>logAndForwardError(LOG), RxMaps.<Boolean>completeResponds());
         }
         return Observable.just(false);
     }
@@ -151,26 +150,6 @@ public class PatientRepository {
                     .value("confidentiality", patient.getConfidentiality().getLevel());
         }
         return insert;
-    }
-
-
-    private Func0<Observable<? extends Boolean>> onCompletion() {
-        return new Func0<Observable<? extends Boolean>>() {
-            @Override
-            public Observable<? extends Boolean> call() {
-                return Observable.just(null);
-            }
-        };
-    }
-
-    private Func1<Throwable, Observable<? extends Boolean>> onError() {
-        return new Func1<Throwable, Observable<? extends Boolean>>() {
-            @Override
-            public Observable<? extends Boolean> call(Throwable throwable) {
-                LOG.error(throwable.getMessage());
-                return Observable.error(throwable);
-            }
-        };
     }
 
 }

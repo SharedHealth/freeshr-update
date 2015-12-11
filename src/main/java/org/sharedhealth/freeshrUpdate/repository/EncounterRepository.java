@@ -21,7 +21,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cassandra.core.CqlOperations;
 import org.springframework.stereotype.Component;
 import rx.Observable;
-import rx.functions.Func0;
 import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 
@@ -30,7 +29,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
-import static org.sharedhealth.freeshrUpdate.repository.RxMaps.completeResponds;
 import static org.sharedhealth.freeshrUpdate.repository.RxMaps.respondOnNext;
 import static org.sharedhealth.freeshrUpdate.utils.KeySpaceUtils.*;
 
@@ -80,7 +78,7 @@ public class EncounterRepository {
                     }
                 });
             }
-        }, onError(), onCompleted());
+        }, RxMaps.<Boolean>logAndForwardError(LOG), RxMaps.<Boolean>completeResponds());
     }
 
     public Observable<Boolean> applyMerge(final PatientUpdate patientUpdate, Patient patientToBeMergedWith){
@@ -148,7 +146,7 @@ public class EncounterRepository {
         }
 
         Observable<ResultSet> mergeObservable = Observable.from(cqlOperations.executeAsynchronously(batch), Schedulers.immediate());
-        return mergeObservable.flatMap(respondOnNext(true), RxMaps.<Boolean>logAndForwardError(LOG), completeResponds(true));
+        return mergeObservable.flatMap(respondOnNext(true), RxMaps.<Boolean>logAndForwardError(LOG), RxMaps.<Boolean> completeResponds());
     }
 
     public Observable<List<String>> getEncounterIdsForPatient(final String healthId) {
@@ -190,22 +188,4 @@ public class EncounterRepository {
         };
     }
 
-    private Func0<Observable<? extends Boolean>> onCompleted() {
-        return new Func0<Observable<? extends Boolean>>() {
-            @Override
-            public Observable<? extends Boolean> call() {
-                return Observable.just(false);
-            }
-        };
-    }
-
-    private Func1<Throwable, Observable<? extends Boolean>> onError() {
-        return new Func1<Throwable, Observable<? extends Boolean>>() {
-            @Override
-            public Observable<? extends Boolean> call(Throwable throwable) {
-                LOG.error(throwable.getMessage());
-                return Observable.error(throwable);
-            }
-        };
-    }
 }

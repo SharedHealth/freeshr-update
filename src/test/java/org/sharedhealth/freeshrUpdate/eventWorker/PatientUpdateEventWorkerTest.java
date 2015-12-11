@@ -3,7 +3,9 @@ package org.sharedhealth.freeshrUpdate.eventWorker;
 import com.sun.syndication.feed.atom.Content;
 import com.sun.syndication.feed.atom.Entry;
 import org.ict4h.atomfeed.client.domain.Event;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
@@ -39,6 +41,9 @@ public class PatientUpdateEventWorkerTest {
     @Mock
     private MciWebClient mciWebClient;
 
+    @Rule
+    public ExpectedException thrown= ExpectedException.none();
+
     @InjectMocks
     private PatientUpdateEventWorker patientUpdateEventWorker = new PatientUpdateEventWorker();
 
@@ -50,6 +55,7 @@ public class PatientUpdateEventWorkerTest {
         entry.setTitle("foo");
         entry.setContents(genarateChangeContent("feeds/update_feed_with_confidential.txt"));
         entry.setPublished(new Date());
+        when(encounterRepository.applyUpdate(any(PatientUpdate.class))).thenReturn(Observable.just(true));
         patientUpdateEventWorker.process(new Event(entry));
 
         ArgumentCaptor<PatientUpdate> captor = ArgumentCaptor.forClass(PatientUpdate.class);
@@ -71,6 +77,7 @@ public class PatientUpdateEventWorkerTest {
         entry.setTitle("foo");
         entry.setContents(genarateChangeContent("feeds/update_feed_with_confidential.txt"));
         entry.setPublished(new Date());
+        when(encounterRepository.applyUpdate(any(PatientUpdate.class))).thenReturn(Observable.just(true));
         patientUpdateEventWorker.process(new Event(entry));
 
         ArgumentCaptor<PatientUpdate> captor = ArgumentCaptor.forClass(PatientUpdate.class);
@@ -113,6 +120,7 @@ public class PatientUpdateEventWorkerTest {
         entry.setTitle("foo");
         entry.setContents(genarateChangeContent("feeds/update_feed_for_merge.txt"));
         entry.setPublished(new Date());
+        when(encounterRepository.applyMerge(any(PatientUpdate.class), any(Patient.class))).thenReturn(Observable.just(true));
         patientUpdateEventWorker.process(new Event(entry));
 
         ArgumentCaptor<PatientUpdate> captor = ArgumentCaptor.forClass(PatientUpdate.class);
@@ -164,6 +172,8 @@ public class PatientUpdateEventWorkerTest {
         entry.setTitle("foo");
         entry.setContents(genarateChangeContent("feeds/update_feed_for_merge.txt"));
         entry.setPublished(new Date());
+        when(encounterRepository.applyMerge(any(PatientUpdate.class), any(Patient.class))).thenReturn(Observable.just(true));
+
         patientUpdateEventWorker.process(new Event(entry));
 
         ArgumentCaptor<PatientUpdate> captor = ArgumentCaptor.forClass(PatientUpdate.class);
@@ -198,7 +208,10 @@ public class PatientUpdateEventWorkerTest {
         entry.setTitle("foo");
         entry.setContents(genarateChangeContent("feeds/update_feed_for_merge.txt"));
         entry.setPublished(new Date());
+        thrown.expect(RuntimeException.class);
+
         patientUpdateEventWorker.process(new Event(entry));
+
 
         ArgumentCaptor<PatientUpdate> captor = ArgumentCaptor.forClass(PatientUpdate.class);
         verify(patientRepository, times(1)).mergeIfFound(captor.capture());
