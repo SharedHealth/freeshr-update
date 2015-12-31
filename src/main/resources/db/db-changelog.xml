@@ -60,4 +60,15 @@
             <column name="error_hash_code" type="int"/>
         </createTable>
     </changeSet>
+    <changeSet id="freeshrupdate-20151231-1305" context="setup" author="neha, dubey">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="tags" tableName="failed_events"/>
+            </not>
+        </preConditions>
+        <comment>Creating column tags for failed_events table. This is same as atom spec feed.entry.categories.</comment>
+        <addColumn tableName="failed_events">
+            <column name="tags" type="varchar(255)"/>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>
