@@ -92,10 +92,10 @@ public class EncounterRepositoryIT {
         // P2 is merged with P1
         // P2's encounters are added to P1 after merge
         // P2's encounters are added to D1d1 catchement after merge
-
-        final Date jul8 = new DateTime(2015, 07, 8, 0, 0).toDate();
-        final Date jul9 = new DateTime(2015, 07, 9, 0, 0).toDate();
-        final Date jul10 = new DateTime(2015, 07, 10, 0, 0).toDate();
+        final int year = new DateTime().getYear();
+        final Date jul8 = new DateTime(year, 07, 8, 0, 0).toDate();
+        final Date jul9 = new DateTime(year, 07, 9, 0, 0).toDate();
+        final Date jul10 = new DateTime(year, 07, 10, 0, 0).toDate();
         org.joda.time.DateTimeUtils.setCurrentMillisFixed(jul10.getTime());
 
         queryUtils.insertEncByPatient("E1", "P1", jul8);
@@ -110,8 +110,8 @@ public class EncounterRepositoryIT {
         queryUtils.insertEncounterByCatchment("E2", "D1", "D1d1","D1d1u1", jul9);
         queryUtils.insertEncounterByCatchment("E3", "D2", "D2d2","D2d2u2" , jul8);
 
-        assertEquals(2, queryUtils.fetchCatchmentFeed("D1", "D1d1", 2015).size());
-        assertEquals(1, queryUtils.fetchCatchmentFeed("D2", "D2d2", 2015).size());
+        assertEquals(2, queryUtils.fetchCatchmentFeed("D1", "D1d1", year).size());
+        assertEquals(1, queryUtils.fetchCatchmentFeed("D2", "D2d2", year).size());
 
         Patient patientMergedWith = new Patient();
         patientMergedWith.setHealthId("P1");
@@ -136,14 +136,14 @@ public class EncounterRepositoryIT {
         assertEquals(3, queryUtils.fetchEncounterByPatientFeed("P1").size());
         assertEquals(1, queryUtils.fetchEncounterByPatientFeed("P2").size());
 
-        List<Row> rows = queryUtils.fetchCatchmentFeed("D1", "D1d1", 2015);
+        List<Row> rows = queryUtils.fetchCatchmentFeed("D1", "D1d1", year);
         assertEquals(3, rows.size());
         queryUtils.assertEncounterByCatchmentRow(rows.get(0), new HashMap<String, String>() {{
             put("encounter_id", "E1");
             put("division_id", "D1");
             put("district_id", "D1d1");
             put("upazila_id", "D1d1u1");
-            put("year", "2015");
+            put("year", String.valueOf(year));
             put("created_at", TimeUuidUtil.uuidForDate(jul8).toString());
         }});
 
@@ -152,7 +152,7 @@ public class EncounterRepositoryIT {
             put("division_id", "D1");
             put("district_id", "D1d1");
             put("upazila_id", "D1d1u1");
-            put("year", "2015");
+            put("year", String.valueOf(year));
             put("created_at", TimeUuidUtil.uuidForDate(jul9).toString());
         }});
 
@@ -161,7 +161,7 @@ public class EncounterRepositoryIT {
             put("division_id", "D1");
             put("district_id", "D1d1");
             put("upazila_id", "D1d1u1");
-            put("year", "2015");
+            put("year", String.valueOf(year));
             put("created_at", TimeUuidUtil.uuidForDate(jul10).toString());
             put("merged_at", TimeUuidUtil.uuidForDate(jul10).toString());
         }});
@@ -225,9 +225,10 @@ public class EncounterRepositoryIT {
         address.setCityCorporationId("60");
         address.setUnionOrUrbanWardId("45");
 
-        Date jul18 = new DateTime(2015, 7, 18, 0, 0).toDate();
-        Date jul19 = new DateTime(2015, 7, 19, 0, 0).toDate();
-        Date jul20 = new DateTime(2015, 7, 20, 0, 0).toDate();
+        int year = new DateTime().getYear();
+        Date jul18 = new DateTime(year, 7, 18, 0, 0).toDate();
+        Date jul19 = new DateTime(year, 7, 19, 0, 0).toDate();
+        Date jul20 = new DateTime(year, 7, 20, 0, 0).toDate();
 
         queryUtils.insertEncounter("E1", "P1", jul18, "e1 content", queryBuilder.getEncounterContentColumnName());
         queryUtils.insertEncounter("E2", "P1", jul19, "e2 content", queryBuilder.getEncounterContentColumnName());
@@ -241,8 +242,8 @@ public class EncounterRepositoryIT {
         queryUtils.insertEncounterByCatchment("E2", "20", "2015", "201502", jul19);
         queryUtils.insertEncounterByCatchment("E3", "20", "2015", "201502", jul20);
 
-        assertThat(queryUtils.fetchCatchmentFeed("20", "2015", 2015).size(), is(3));
-        assertThat(queryUtils.fetchCatchmentFeed("40", "4036", 2015).size(), is(0));
+        assertThat(queryUtils.fetchCatchmentFeed("20", "2015", year).size(), is(3));
+        assertThat(queryUtils.fetchCatchmentFeed("40", "4036", year).size(), is(0));
 
         PatientUpdate patientUpdate = new PatientUpdate();
         patientUpdate.setChangeSetMap(addressChange(address));
@@ -258,8 +259,8 @@ public class EncounterRepositoryIT {
         updateResponseSubscriber.assertCompleted();
         assertTrue(updateResponseSubscriber.getOnNextEvents().get(0));
         
-        assertThat(queryUtils.fetchCatchmentFeed("20", "2015", 2015).size(), is(3));
-        List<Row> rows = queryUtils.fetchCatchmentFeed("40", "4036", 2015);
+        assertThat(queryUtils.fetchCatchmentFeed("20", "2015", year).size(), is(3));
+        List<Row> rows = queryUtils.fetchCatchmentFeed("40", "4036", year);
         assertThat(rows.size(), is(3));
         assertThat(rows.get(0).getString("upazila_id"), is("403618"));
         assertThat(rows.get(0).getString("city_corporation_id"), is("40361860"));
