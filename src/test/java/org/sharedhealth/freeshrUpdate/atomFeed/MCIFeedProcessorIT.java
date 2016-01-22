@@ -1,6 +1,7 @@
 package org.sharedhealth.freeshrUpdate.atomFeed;
 
 import com.datastax.driver.core.Row;
+import com.google.common.collect.Lists;
 import org.joda.time.DateTime;
 import org.junit.After;
 import org.junit.Before;
@@ -27,11 +28,14 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import rx.Observable;
+import rx.functions.Action1;
 import rx.observers.TestSubscriber;
 
 import java.net.URI;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import static org.hamcrest.core.Is.is;
@@ -88,6 +92,10 @@ public class MCIFeedProcessorIT {
         queryUtils.insertPatient("P1");
         queryUtils.insertEncounter("E1", "P1", new DateTime(2015, 11, 25, 0, 0, 0).toDate(), "E1 for P1", queryBuilder.getEncounterContentColumnName());
         queryUtils.insertEncByPatient("E1", "P1", new DateTime(2015, 11, 25, 0, 0, 0).toDate());
+        queryUtils.insertEncounter("E2", "P1", new DateTime(2015, 11, 26, 0, 0, 0).toDate(), "E2 for P1", queryBuilder.getEncounterContentColumnName());
+        queryUtils.insertEncByPatient("E2", "P1", new DateTime(2015, 11, 26, 0, 0, 0).toDate());
+        List<String> list = encounterRepository.getEncounterIdsForPatient("P1").toBlocking().first();
+        assertEquals(2, list.size());
 
         when(mciWebClient.getFeed(properties.getMciPatientUpdateFeedUrl())).thenReturn(FileUtil.asString("feeds/mergeFeed.xml"));
         when(mciWebClient.getFeed(new URI("http://127.0.0.1:8081/api/v1/feed/patients?last_marker=end"))).thenReturn(FileUtil.asString("feeds/emptyFeed.xml"));
@@ -122,7 +130,7 @@ public class MCIFeedProcessorIT {
         encounterBundleSubscriber.assertCompleted();
 
         List<EncounterBundle> encountersForP2 = encounterBundleSubscriber.getOnNextEvents();
-        assertThat(encountersForP2.size(), is(1));
+        assertEquals(2, encountersForP2.size());
         queryUtils.assertEncounter(encountersForP2.get(0), "E1", "P2", "E1 for P2");
     }
 

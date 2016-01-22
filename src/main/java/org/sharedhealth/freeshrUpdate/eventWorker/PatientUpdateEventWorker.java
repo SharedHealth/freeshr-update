@@ -55,7 +55,7 @@ public class PatientUpdateEventWorker implements EventWorker {
                 LOG.debug(String.format("Patient's encounters are %s merged", updated ? "" : "not"));
             }
         }, actionOnError());
-
+        encounterMergeObservable.toBlocking().firstOrDefault(true);
     }
 
     private void applyUpdate(final PatientUpdate patientUpdate) {
@@ -70,6 +70,7 @@ public class PatientUpdateEventWorker implements EventWorker {
                         "not"));
             }
         }, actionOnError());
+        updateEncounterResponse.toBlocking().firstOrDefault(true);
     }
 
     private Action1<Throwable> actionOnError() {

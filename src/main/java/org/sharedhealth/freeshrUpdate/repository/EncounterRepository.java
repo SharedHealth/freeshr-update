@@ -138,9 +138,12 @@ public class EncounterRepository {
         Batch batch = QueryBuilder.batch(updateEncounterStmt, insertEncByPatientStatement);
         Address address = patientToBeMergeWith.getAddress();
 
-        if(address != null){
-        Insert insertEncByCatchmentStmt = shrQueryBuilder.getInsEncByCatchmentStmt(address.getDivisionId(), address.getConcatenatedDistrictId(), address.getConcatenatedUpazilaId(), address.getConcatenatedCityCorporationId(),
-                address.getConcatenatedWardId(), encounterBundle.getEncounterId(), createdAt, createdAt);
+        if (address != null) {
+            Insert insertEncByCatchmentStmt = shrQueryBuilder.getInsEncByCatchmentStmt(
+                    address.getDivisionId(), address.getConcatenatedDistrictId(),
+                    address.getConcatenatedUpazilaId(), address.getConcatenatedCityCorporationId(),
+                    address.getConcatenatedWardId(), encounterBundle.getEncounterId(),
+                    createdAt, createdAt);
             batch.add(insertEncByCatchmentStmt);
 
         }
