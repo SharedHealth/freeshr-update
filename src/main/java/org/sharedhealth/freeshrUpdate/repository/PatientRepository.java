@@ -48,7 +48,7 @@ public class PatientRepository {
         }, RxMaps.<Boolean>logAndForwardError(LOG), RxMaps.<Boolean>completeResponds());
     }
 
-    public Observable<Boolean> mergeIfFound(final PatientUpdate patientUpdate) {
+    public Observable<Boolean> mergeUpdate(final PatientUpdate patientUpdate) {
         final String healthId = patientUpdate.getHealthId();
         return checkPatientExists(healthId).flatMap(new Func1<Boolean, Observable<Boolean>>() {
             @Override

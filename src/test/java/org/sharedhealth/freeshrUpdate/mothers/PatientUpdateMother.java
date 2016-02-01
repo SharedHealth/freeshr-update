@@ -54,7 +54,7 @@ public class PatientUpdateMother {
     private static PatientUpdate patientUpdate(String healthId, UUID eventId, PatientChangeSet patientChangeSet) {
         PatientUpdate patientUpdate = new PatientUpdate();
         patientUpdate.setHealthId(healthId);
-        patientUpdate.setEventId(eventId);
+        patientUpdate.setEventId(eventId.toString());
         patientUpdate.setChangeSetMap(patientChangeSet);
         return patientUpdate;
     }

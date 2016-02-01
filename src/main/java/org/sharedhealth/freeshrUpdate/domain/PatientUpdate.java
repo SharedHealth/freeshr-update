@@ -13,7 +13,7 @@ public class PatientUpdate {
     private int year;
 
     @JsonProperty("event_id")
-    private UUID eventId;
+    private String eventId;
 
     @JsonProperty("health_id")
     private String healthId;
@@ -28,7 +28,7 @@ public class PatientUpdate {
         return year;
     }
 
-    public UUID getEventId() {
+    public String getEventId() {
         return eventId;
     }
 
@@ -48,7 +48,7 @@ public class PatientUpdate {
         this.year = year;
     }
 
-    public void setEventId(UUID eventId) {
+    public void setEventId(String eventId) {
         this.eventId = eventId;
     }
 

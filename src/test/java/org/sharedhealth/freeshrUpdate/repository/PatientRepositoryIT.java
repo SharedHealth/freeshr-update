@@ -49,8 +49,8 @@ public class PatientRepositoryIT {
         PatientUpdate patientUpdate = PatientUpdateMother.merge("P1", "P2");
 
         queryUtils.insertPatient("P1");
-        assertTrue(patientRepository.mergeIfFound(patientUpdate).toBlocking().first());
-        assertTrue(patientRepository.mergeIfFound(patientUpdate).toBlocking().first());
+        assertTrue(patientRepository.mergeUpdate(patientUpdate).toBlocking().first());
+        assertTrue(patientRepository.mergeUpdate(patientUpdate).toBlocking().first());
 
     }
 

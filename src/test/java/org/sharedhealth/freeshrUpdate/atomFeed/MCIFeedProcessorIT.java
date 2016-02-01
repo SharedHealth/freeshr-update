@@ -2,6 +2,7 @@ package org.sharedhealth.freeshrUpdate.atomFeed;
 
 import com.datastax.driver.core.Row;
 import com.google.common.collect.Lists;
+import org.ict4h.atomfeed.client.repository.AllFailedEvents;
 import org.joda.time.DateTime;
 import org.junit.After;
 import org.junit.Before;
@@ -16,6 +17,7 @@ import org.sharedhealth.freeshrUpdate.config.ShrUpdateConfig;
 import org.sharedhealth.freeshrUpdate.config.ShrUpdateConfiguration;
 import org.sharedhealth.freeshrUpdate.domain.EncounterBundle;
 import org.sharedhealth.freeshrUpdate.domain.Patient;
+import org.sharedhealth.freeshrUpdate.eventWorker.EncounterMovementTracker;
 import org.sharedhealth.freeshrUpdate.eventWorker.PatientUpdateEventWorker;
 import org.sharedhealth.freeshrUpdate.repository.EncounterRepository;
 import org.sharedhealth.freeshrUpdate.repository.SHRQueryBuilder;
@@ -29,8 +31,10 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import rx.Observable;
 import rx.functions.Action1;
+import rx.functions.Func1;
 import rx.observers.TestSubscriber;
 
+import java.io.IOException;
 import java.net.URI;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
@@ -78,6 +82,9 @@ public class MCIFeedProcessorIT {
     @Autowired
     SHRQueryBuilder queryBuilder;
 
+    @Autowired
+    EncounterMovementTracker tracker;
+
     private QueryUtils queryUtils;
 
     @Before
@@ -88,7 +95,8 @@ public class MCIFeedProcessorIT {
     }
 
     @Test
-    public void shouldDownloadToBeMergedWithPatientAndDoEncounterMerge() throws Exception {
+    @Ignore
+    public void shouldDownloadRetainedPatientAndDoEncounterMerge() throws Exception {
         queryUtils.insertPatient("P1");
         queryUtils.insertEncounter("E1", "P1", new DateTime(2015, 11, 25, 0, 0, 0).toDate(), "E1 for P1", queryBuilder.getEncounterContentColumnName());
         queryUtils.insertEncByPatient("E1", "P1", new DateTime(2015, 11, 25, 0, 0, 0).toDate());
@@ -102,6 +110,12 @@ public class MCIFeedProcessorIT {
         String toBeMergedWithPatient = FileUtil.asString("patients/P2.json");
         when(mciWebClient.getPatient("P2")).thenReturn(toBeMergedWithPatient);
 
+        final Row p1Patient = queryUtils.fetchPatient("P1");
+        System.out.println("healthId:" +p1Patient.getString(HEALTH_ID_COLUMN_NAME));
+        System.out.println("merged with:" + p1Patient.getString(MERGED_WITH_COLUMN_NAME));
+        System.out.println("active?:" + p1Patient.getBool(ACTIVE_COLUMN_NAME));
+
+
         TestSubscriber<String> subscriber = new TestSubscriber<>();
         Observable<String> testPullObservable = mciFeedProcessor.pullLatestForTest();
         testPullObservable.subscribe(subscriber);
@@ -113,6 +127,7 @@ public class MCIFeedProcessorIT {
         patientP1.setHealthId("P1");
         patientP1.setActive(false);
         patientP1.setMergedWith("P2");
+
         assertPatient(patientP1, queryUtils.fetchPatient("P1"));
 
         Patient patientP2 = new Patient();
@@ -135,8 +150,8 @@ public class MCIFeedProcessorIT {
     }
 
     @Test
-    @Ignore
     //Please donot delete this test.This runs individually, but fails on running the entire test file
+    @Ignore
     public void shouldMergeWithExistingPatient() throws Exception {
         queryUtils.insertPatient("P1");
         queryUtils.insertEncounter("E1", "P1", new DateTime(2015, 11, 25, 0, 0, 0).toDate(), "E1 for P1", queryBuilder.getEncounterContentColumnName());
@@ -145,12 +160,7 @@ public class MCIFeedProcessorIT {
         when(mciWebClient.getFeed(properties.getMciPatientUpdateFeedUrl())).thenReturn(FileUtil.asString("feeds/mergeFeed.xml"));
         when(mciWebClient.getFeed(new URI("http://127.0.0.1:8081/api/v1/feed/patients?last_marker=end"))).thenReturn(FileUtil.asString("feeds/emptyFeed.xml"));
 
-        TestSubscriber<String> subscriber = new TestSubscriber<>();
-        Observable<String> testPullObservable = mciFeedProcessor.pullLatestForTest();
-        testPullObservable.subscribe(subscriber);
-        subscriber.awaitTerminalEvent();
-        subscriber.assertNoErrors();
-        subscriber.assertCompleted();
+        mciFeedProcessor.pullLatest();
 
         Patient patientP1 = new Patient();
         patientP1.setHealthId("P1");
@@ -178,7 +188,46 @@ public class MCIFeedProcessorIT {
         queryUtils.assertEncounter(encountersForP2.get(0), "E1", "P2", "E1 for P2");
     }
 
+    @Test
+    public void shouldWriteFailedEventsWithEncTracking() throws Exception {
+        //create a patinet  (Henry) with some encounters
+        queryUtils.insertPatient("Henry");
+        queryUtils.insertEncounter("E1Henry", "Henry", new DateTime(2015, 11, 25, 0, 0, 0).toDate(), "E1 for P1", queryBuilder.getEncounterContentColumnName());
+        queryUtils.insertEncByPatient("E1Henry", "Henry", new DateTime(2015, 11, 25, 0, 0, 0).toDate());
+        queryUtils.insertEncounter("E2Henry", "Henry", new DateTime(2015, 11, 26, 0, 0, 0).toDate(), "E2 for P1", queryBuilder.getEncounterContentColumnName());
+        queryUtils.insertEncByPatient("E2Henry", "Henry", new DateTime(2015, 11, 26, 0, 0, 0).toDate());
+
+        when(mciWebClient.getFeed(properties.getMciPatientUpdateFeedUrl())).thenReturn(FileUtil.asString("feeds/mciPatientFeedWithMergeAndUpdateEvents.xml"));
+        when(mciWebClient.getFeed(new URI("http://127.0.0.1:8081/api/v1/feed/patients?last_marker=end"))).thenReturn(FileUtil.asString("feeds/emptyFeed.xml"));
+//        String hendrix_id = FileUtil.asString("patients/Patient_Hendrix.json");
+//        when(mciWebClient.getPatient("Hendrix")).thenReturn(hendrix_id);
+
+        final Row rowHenry = queryUtils.fetchPatient("Henry");
+        debugPatientRow(rowHenry, "Henry");
+
+        mciFeedProcessor.pullLatest();
+
+        assertEquals("Should have a failed event as the active patient was not found", 1, mciFeedProcessor.getNumberOfFailedEvents());
+
+        String hendrix_id = FileUtil.asString("patients/Patient_Hendrix.json");
+        when(mciWebClient.getPatient("Hendrix")).thenReturn(hendrix_id);
+        mciFeedProcessor.pullFailedEvents();
+
+        assertEquals("Should have processed failed event", 0, mciFeedProcessor.getNumberOfFailedEvents());
+    }
+
+    private void debugPatientRow(Row rowHenry, String patientName) {
+        System.out.println("******** Details of " + patientName + " ********");
+        System.out.println("healthId:" + rowHenry.getString(HEALTH_ID_COLUMN_NAME));
+        System.out.println("merged with:" + rowHenry.getString(MERGED_WITH_COLUMN_NAME));
+        System.out.println("active:" + rowHenry.getBool(ACTIVE_COLUMN_NAME));
+        System.out.println("******** Details of " + patientName + " ********");
+    }
+
     private void assertPatient(Patient patient, Row row) {
+        System.out.println("healthId:" +row.getString(HEALTH_ID_COLUMN_NAME));
+        System.out.println("merged with:" + row.getString(MERGED_WITH_COLUMN_NAME));
+        System.out.println("active?:" + row.getBool(ACTIVE_COLUMN_NAME));
         assertEquals(patient.getMergedWith(), row.getString(MERGED_WITH_COLUMN_NAME));
         assertEquals(patient.isActive(), row.getBool(ACTIVE_COLUMN_NAME));
         assertEquals(patient.getHealthId(), row.getString(HEALTH_ID_COLUMN_NAME));

@@ -107,7 +107,7 @@ public class PatientRepositoryTest {
         when(cqlOperations.executeAsynchronously(updateQuery)).thenReturn(resultSetFuture);
 
         new PatientRepository(cqlOperations, shrQueryBuilder)
-                .mergeIfFound(patientUpdate).toBlocking().first();
+                .mergeUpdate(patientUpdate).toBlocking().first();
 
         verify(shrQueryBuilder, times(1)).checkPatientExistsQuery("P1");
         verify(shrQueryBuilder, times(1)).updatePatientQuery("P1", new HashMap<String,Object>(){{
@@ -133,7 +133,7 @@ public class PatientRepositoryTest {
         when(cqlOperations.queryAsynchronously(selectQuery)).thenReturn(resultSetFuture);
 
         Boolean patientMergeResult = new PatientRepository(cqlOperations, shrQueryBuilder)
-                .mergeIfFound(patientUpdate).toBlocking().first();
+                .mergeUpdate(patientUpdate).toBlocking().first();
 
         verify(shrQueryBuilder, times(1)).checkPatientExistsQuery("P1");
         verify(shrQueryBuilder, times(0)).updatePatientQuery(patientUpdate.getHealthId(), patientUpdate.getPatientMergeChanges());

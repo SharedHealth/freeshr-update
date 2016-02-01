@@ -22,6 +22,7 @@ import org.springframework.cassandra.core.CqlOperations;
 import org.springframework.stereotype.Component;
 import rx.Observable;
 import rx.functions.Func1;
+import rx.functions.Func2;
 import rx.schedulers.Schedulers;
 
 import java.util.ArrayList;
@@ -189,6 +190,33 @@ public class EncounterRepository {
                 });
             }
         };
+    }
+
+
+    public Observable<List<EncounterBundle>> getAllEncounters(String healthId){
+        Observable<List<String>> encounterIdsForPatient = getEncounterIdsForPatient(healthId);
+        return encounterIdsForPatient.flatMap(new Func1<List<String>, Observable<List<EncounterBundle>>>() {
+            @Override
+            public Observable<List<EncounterBundle>> call(List<String> encounterIds) {
+                Statement encountersByEncounterIdsQuery = shrQueryBuilder.findEncounterBundlesByEncounterIdsQuery(encounterIds);
+                Observable<ResultSet> observable = Observable.from(cqlOperations.queryAsynchronously(encountersByEncounterIdsQuery.toString()));
+                return observable.concatMap(new Func1<ResultSet, Observable<List<EncounterBundle>>>() {
+                    @Override
+                    public Observable<List<EncounterBundle>> call(ResultSet rows) {
+                        List<EncounterBundle> encountersBundles = new ArrayList<>();
+                        for (Row row : rows.all()) {
+                            String encounterId = row.getString(ENCOUNTER_ID_COLUMN_NAME);
+                            String healthId = row.getString(HEALTH_ID_COLUMN_NAME);
+                            String content = row.getString(shrQueryBuilder.getEncounterContentColumnName());
+                            Date receivedAt = TimeUuidUtil.getDateFromUUID(row.getUUID(RECEIVED_AT_COLUMN_NAME));
+
+                            encountersBundles.add(new EncounterBundle(encounterId, healthId, content, receivedAt));
+                        }
+                        return Observable.just(encountersBundles);
+                    }
+                });
+            }
+        });
     }
 
 }

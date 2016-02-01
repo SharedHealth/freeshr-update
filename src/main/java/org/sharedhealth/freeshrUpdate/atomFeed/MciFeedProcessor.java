@@ -72,4 +72,8 @@ public class MciFeedProcessor {
                 feedUri,
                 worker);
     }
+
+    public int getNumberOfFailedEvents() {
+        return failedEvents.getNumberOfFailedEvents(this.shrUpdateConfiguration.getMciPatientUpdateFeedUrl().toString());
+    }
 }
