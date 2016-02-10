@@ -11,15 +11,25 @@
     </author>
     <id>46bcc3a4-61d6-4753-81ef-f109f9e3a20b</id>
     <generator uri="https://github.com/ICT4H/atomfeed">Atomfeed</generator>
-    <updated>2015-11-23T06:01:59Z</updated>
-
+    <updated>2015-11-24T06:01:59Z</updated>
+    <entry>
+        <title>patient updated: Patient1</title>
+        <link rel="via" type="application/xml" href="http://127.0.0.1:8081/api/v1/patients/Patient1"/>
+        <category term="patient"/>
+        <category term="update:active,merged_with"/>
+        <id>49afb700-91c7-11e5-aa37-ef05a0d2b541</id>
+        <published>2015-11-23T10:18:02Z</published>
+        <content type="application/vnd.atomfeed+xml">
+            <![CDATA[{"health_id":"Patient1","event_time":"2015-11-23T15:18:02.544+05:30","change_set":{"active":{"new_value":false,"old_value":true},"merged_with":{"new_value":"Patient2","old_value":""}},"requested_by":{"ALL_FIELDS":[{"facility":null,"provider":null,"admin":{"id":"18566","name":"mciApprover"}}]}}]]>
+        </content>
+    </entry>
     <entry>
         <title>patient created: P2</title>
         <link rel="via" type="application/xml" href="http://127.0.0.1:8081/api/v1/patients/P2"/>
         <category term="patient"/>
         <category term="create"/>
-        <id>65bd35d1-91c2-11e5-aa37-ef05a0d2b541</id>
-        <published>2015-11-23T09:43:02Z</published>
+        <id>32bd35d1-91c2-11e5-aa37-ef05a0d2b541</id>
+        <published>2015-11-24T09:43:02Z</published>
         <content type="application/vnd.atomfeed+xml">
             <![CDATA[{"health_id":"P2","event_time":"2015-11-23T14:43:02.125+05:30","change_set":{"hid":{"new_value":"P2","old_value":""}},"requested_by":{"ALL_FIELDS":[{"facility":{"id":"10000002","name":null},"provider":null,"admin":{"id":"6","name":"Angshu"}}]}}]]>
         </content>
@@ -29,8 +39,8 @@
         <link rel="via" type="application/xml" href="http://127.0.0.1:8081/api/v1/patients/P1"/>
         <category term="patient"/>
         <category term="create"/>
-        <id>7fb5ec21-91c2-11e5-aa37-ef05a0d2b541</id>
-        <published>2015-11-23T09:43:45Z</published>
+        <id>1ab5ec21-91c2-11e5-aa37-ef05a0d2b541</id>
+        <published>2015-11-24T09:43:45Z</published>
         <content type="application/vnd.atomfeed+xml">
             <![CDATA[{"health_id":"P1","event_time":"2015-11-23T14:43:45.698+05:30","change_set":{"hid":{"new_value":"P1","old_value":""}},"requested_by":{"ALL_FIELDS":[{"facility":{"id":"10000002","name":null},"provider":null,"admin":{"id":"6","name":"Angshu"}}]}}]]>
         </content>
@@ -40,8 +50,8 @@
         <link rel="via" type="application/xml" href="http://127.0.0.1:8081/api/v1/patients/P1"/>
         <category term="patient"/>
         <category term="update:active,merged_with"/>
-        <id>49afb700-91c7-11e5-aa37-ef05a0d2b541</id>
-        <published>2015-11-23T10:18:02Z</published>
+        <id>2bafb700-91c7-11e5-aa37-ef05a0d2b541</id>
+        <published>2015-11-24T10:18:02Z</published>
         <content type="application/vnd.atomfeed+xml">
             <![CDATA[{"health_id":"P1","event_time":"2015-11-23T15:18:02.544+05:30","change_set":{"active":{"new_value":false,"old_value":true},"merged_with":{"new_value":"P2","old_value":""}},"requested_by":{"ALL_FIELDS":[{"facility":null,"provider":null,"admin":{"id":"18566","name":"mciApprover"}}]}}]]>
         </content>

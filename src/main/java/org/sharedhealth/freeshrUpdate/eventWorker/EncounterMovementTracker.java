@@ -1,8 +1,6 @@
 package org.sharedhealth.freeshrUpdate.eventWorker;
 
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.Iterables;
 import org.ict4h.atomfeed.jdbc.JdbcUtils;
 import org.ict4h.atomfeed.transaction.AFTransactionWork;
 import org.ict4h.atomfeed.transaction.AFTransactionWorkWithoutResult;
@@ -10,13 +8,12 @@ import org.sharedhealth.freeshrUpdate.atomFeed.AtomFeedSpringTransactionManager;
 import org.sharedhealth.freeshrUpdate.domain.EncounterBundle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.util.CollectionUtils;
-import rx.Observable;
-import rx.functions.Func1;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 @Component

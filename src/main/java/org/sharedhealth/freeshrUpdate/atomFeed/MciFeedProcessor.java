@@ -48,11 +48,6 @@ public class MciFeedProcessor {
         atomFeedClient.processEvents();
     }
 
-    public Observable<String> pullLatestForTest(){
-        pullLatest();
-        return Observable.just("Testing");
-    }
-
     public void pullFailedEvents() {
         AtomFeedProperties atomProperties = new AtomFeedProperties();
         atomProperties.setMaxFailedEvents(20);
