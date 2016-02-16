@@ -5,6 +5,7 @@ import com.datastax.driver.core.querybuilder.Insert;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.datastax.driver.core.querybuilder.Select;
 import com.datastax.driver.core.querybuilder.Update;
+import me.prettyprint.cassandra.utils.TimeUUIDUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.sharedhealth.freeshrUpdate.config.ShrUpdateConfiguration;
 import org.sharedhealth.freeshrUpdate.domain.Address;
@@ -109,7 +110,7 @@ public class SHRQueryBuilder {
 
     public Statement insertCatchmentFeedForAddressChange(PatientUpdate patientUpdate, EncounterDetail encounterDetail){
         Address addressChange = patientUpdate.getChangeSet().getAddressChange();
-        UUID createdAt = TimeUuidUtil.getTimeUUID();
+        UUID createdAt = TimeUUIDUtils.getUniqueTimeUUIDinMillis();
 
         Insert insertEncByCatchmentStmt = getInsEncByCatchmentStmt(addressChange.getDivisionId(), addressChange.getConcatenatedDistrictId(), addressChange.getConcatenatedUpazilaId(), addressChange.getConcatenatedCityCorporationId(), addressChange.getConcatenatedWardId(), encounterDetail.getEncounterId(), createdAt, null);
         return insertEncByCatchmentStmt;

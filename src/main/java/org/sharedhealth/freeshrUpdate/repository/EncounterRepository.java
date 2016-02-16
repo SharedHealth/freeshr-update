@@ -8,6 +8,7 @@ import com.datastax.driver.core.querybuilder.Batch;
 import com.datastax.driver.core.querybuilder.Insert;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.datastax.driver.core.querybuilder.Update;
+import me.prettyprint.cassandra.utils.TimeUUIDUtils;
 import org.joda.time.DateTimeUtils;
 import org.sharedhealth.freeshrUpdate.domain.Address;
 import org.sharedhealth.freeshrUpdate.domain.EncounterBundle;
@@ -60,11 +61,11 @@ public class EncounterRepository {
             public Observable<Boolean> call(List<EncounterDetail> encountersDetails) {
                 BatchStatement batchStatement = new BatchStatement();
                 for (EncounterDetail encounterDetail : encountersDetails) {
-                    if(patientUpdate.hasConfidentialChange()){
+                    if (patientUpdate.hasConfidentialChange()) {
                         Statement updateEncounterQuery = shrQueryBuilder.updateEncounterQuery(patientUpdate, encounterDetail);
                         batchStatement.add(updateEncounterQuery);
                     }
-                    if(patientUpdate.hasAddressChange()){
+                    if (patientUpdate.hasAddressChange()) {
                         Statement insertCatchmentFeedForAddressChange = shrQueryBuilder.insertCatchmentFeedForAddressChange(patientUpdate, encounterDetail);
                         batchStatement.add(insertCatchmentFeedForAddressChange);
 
@@ -82,7 +83,7 @@ public class EncounterRepository {
         }, RxMaps.<Boolean>logAndForwardError(LOG), RxMaps.<Boolean>completeResponds());
     }
 
-    public Observable<Boolean> applyMerge(final PatientUpdate patientUpdate, Patient patientToBeMergedWith){
+    public Observable<Boolean> applyMerge(final PatientUpdate patientUpdate, Patient patientToBeMergedWith) {
 //        System.out.println("Applying Encounter merge");
         Observable<EncounterBundle> encounterBundlesObservable = getEncounterBundles(patientUpdate.getHealthId());
         Observable<Boolean> encounterMergeObservable = encounterBundlesObservable.flatMap(getEncountersSuccess(patientToBeMergedWith));
@@ -100,7 +101,7 @@ public class EncounterRepository {
     }
 
 
-    public Observable<EncounterBundle> getEncounterBundles(String healthId){
+    public Observable<EncounterBundle> getEncounterBundles(String healthId) {
         Observable<List<String>> encounterIdsForPatient = getEncounterIdsForPatient(healthId);
         return encounterIdsForPatient.flatMap(new Func1<List<String>, Observable<EncounterBundle>>() {
             @Override
@@ -127,12 +128,12 @@ public class EncounterRepository {
         });
     }
 
-    public Observable<Boolean> associateEncounterBundleTo(EncounterBundle encounterBundle, Patient patientToBeMergeWith){
+    public Observable<Boolean> associateEncounterBundleTo(EncounterBundle encounterBundle, Patient patientToBeMergeWith) {
 //        System.out.println("Substituting healthIds");
         String healthIdToMergeWith = patientToBeMergeWith.getHealthId();
         encounterBundle.associateTo(healthIdToMergeWith);
 
-        UUID createdAt = TimeUuidUtil.uuidForDate(DateTimeUtils.currentTimeMillis());
+        UUID createdAt = TimeUUIDUtils.getUniqueTimeUUIDinMillis();
         Update updateEncounterStmt = shrQueryBuilder.updateEncounterOnMergeStatement(encounterBundle, healthIdToMergeWith);
 
         Insert insertEncByPatientStatement = shrQueryBuilder.insertEncByPatientStatement(encounterBundle, createdAt, healthIdToMergeWith, createdAt);
@@ -150,7 +151,7 @@ public class EncounterRepository {
         }
 
         Observable<ResultSet> mergeObservable = Observable.from(cqlOperations.executeAsynchronously(batch), Schedulers.immediate());
-        return mergeObservable.flatMap(respondOnNext(true), RxMaps.<Boolean>logAndForwardError(LOG), RxMaps.<Boolean> completeResponds());
+        return mergeObservable.flatMap(respondOnNext(true), RxMaps.<Boolean>logAndForwardError(LOG), RxMaps.<Boolean>completeResponds());
     }
 
     public Observable<List<String>> getEncounterIdsForPatient(final String healthId) {
@@ -193,7 +194,7 @@ public class EncounterRepository {
     }
 
 
-    public Observable<List<EncounterBundle>> getAllEncounters(String healthId){
+    public Observable<List<EncounterBundle>> getAllEncounters(String healthId) {
         Observable<List<String>> encounterIdsForPatient = getEncounterIdsForPatient(healthId);
         return encounterIdsForPatient.flatMap(new Func1<List<String>, Observable<List<EncounterBundle>>>() {
             @Override

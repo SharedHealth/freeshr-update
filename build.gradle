@@ -50,8 +50,9 @@ ext.libraries = [
         jackson              : "com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.4.0",
         liquibase            : "org.liquibase:liquibase-core:3.1.1",
         mysql_connector      : "mysql:mysql-connector-java:5.1.33",
-        spring_jdbc          : "org.springframework:spring-jdbc:4.1.1.RELEASE"
-
+        spring_jdbc          : "org.springframework:spring-jdbc:4.1.1.RELEASE",
+        hector_core              : 'me.prettyprint:hector-core:1.0-5'
+,
 ]
 
 

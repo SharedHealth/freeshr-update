@@ -6,11 +6,10 @@ import com.datastax.driver.core.Row;
 import com.datastax.driver.core.querybuilder.Insert;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.datastax.driver.core.querybuilder.Select;
-import org.apache.commons.lang3.*;
-import org.apache.commons.lang3.StringUtils;
 import org.sharedhealth.freeshrUpdate.domain.EncounterBundle;
 import org.springframework.cassandra.core.CqlOperations;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -103,16 +102,33 @@ public class QueryUtils {
         assertEquals(confidentiality, encounterRow.getString("patient_confidentiality"));
     }
 
-    public void assertEncounterByCatchmentRow(Row encounterByCatchmentRow, HashMap<String, String> expectedEncounterByCatchment) {
+    public void assertEncounterByCatchmentRow(Row encounterByCatchmentRow, HashMap<String, String> expectedEncounterByCatchment, boolean matchExactCreatedAt) {
         assertEquals(expectedEncounterByCatchment.get("encounter_id"), encounterByCatchmentRow.getString("encounter_id"));
         assertEquals(expectedEncounterByCatchment.get("division_id"), encounterByCatchmentRow.getString("division_id"));
         assertEquals(expectedEncounterByCatchment.get("district_id"), encounterByCatchmentRow.getString("district_id"));
         assertEquals(expectedEncounterByCatchment.get("upazila_id"), encounterByCatchmentRow.getString("upazila_id"));
         assertEquals(Integer.valueOf(expectedEncounterByCatchment.get("year")).intValue(), encounterByCatchmentRow.getInt("year"));
-        assertEquals(expectedEncounterByCatchment.get("created_at"), encounterByCatchmentRow.getUUID("created_at").toString());
+        if(matchExactCreatedAt){
+            assertEquals(expectedEncounterByCatchment.get("created_at"), encounterByCatchmentRow.getUUID("created_at").toString());
+            String expectedMergedAt = expectedEncounterByCatchment.get("merged_at");
+            if (expectedMergedAt != null)
+                assertEquals(expectedMergedAt, encounterByCatchmentRow.getUUID("merged_at").toString());
+        }else {
+            assertUuids(encounterByCatchmentRow, expectedEncounterByCatchment, "created_at");
+            String expectedMergedAt = expectedEncounterByCatchment.get("merged_at");
+            if (expectedMergedAt != null)
+                assertUuids(encounterByCatchmentRow, expectedEncounterByCatchment, "merged_at");
+        }
+    }
 
-        String expectedMergedAt = expectedEncounterByCatchment.get("merged_at");
-        if (expectedMergedAt != null)
-            assertEquals(expectedMergedAt, encounterByCatchmentRow.getUUID("merged_at").toString());
+    private void assertUuids(Row encounterByCatchmentRow, HashMap<String, String> expectedEncounterByCatchment, String column) {
+        final String actualCreatedAt = encounterByCatchmentRow.getUUID(column).toString();
+        final String expectedCreatedAt = expectedEncounterByCatchment.get("created_at");
+        assertEquals(extractDateFromUuidString(expectedCreatedAt), extractDateFromUuidString(actualCreatedAt));
+    }
+
+    private String extractDateFromUuidString(String expectedCreatedAt) {
+        final SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy");
+        return format.format(TimeUuidUtil.getDateFromUUID(UUID.fromString(expectedCreatedAt)));
     }
 }

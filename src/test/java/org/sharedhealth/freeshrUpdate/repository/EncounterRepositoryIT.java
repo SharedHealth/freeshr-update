@@ -25,6 +25,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import rx.Observable;
 import rx.observers.TestSubscriber;
 
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 import static java.util.Arrays.asList;
@@ -92,23 +93,27 @@ public class EncounterRepositoryIT {
         // P2 is merged with P1
         // P2's encounters are added to P1 after merge
         // P2's encounters are added to D1d1 catchement after merge
-        final int year = new DateTime().getYear();
-        final Date jul8 = new DateTime(year, 07, 8, 0, 0).toDate();
-        final Date jul9 = new DateTime(year, 07, 9, 0, 0).toDate();
-        final Date jul10 = new DateTime(year, 07, 10, 0, 0).toDate();
-        org.joda.time.DateTimeUtils.setCurrentMillisFixed(jul10.getTime());
+        final Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.MILLISECOND, 0);
+        final int year = calendar.get(Calendar.YEAR);
+        final Date currentTime = calendar.getTime();
+        calendar.add(Calendar.HOUR, -1);
+        final Date oneHoursAgo = calendar.getTime();
+        calendar.add(Calendar.HOUR, -1);
+        final Date twoHoursAgo = calendar.getTime();
+        org.joda.time.DateTimeUtils.setCurrentMillisFixed(currentTime.getTime());
 
-        queryUtils.insertEncByPatient("E1", "P1", jul8);
-        queryUtils.insertEncByPatient("E2", "P1", jul9);
-        queryUtils.insertEncByPatient("E3", "P2", jul8);
+        queryUtils.insertEncByPatient("E1", "P1", twoHoursAgo);
+        queryUtils.insertEncByPatient("E2", "P1", oneHoursAgo);
+        queryUtils.insertEncByPatient("E3", "P2", twoHoursAgo);
 
-        queryUtils.insertEncounter("E1", "P1", jul8, "e1 content for P1", queryBuilder.getEncounterContentColumnName());
-        queryUtils.insertEncounter("E2", "P1", jul9, "e2 content for P1", queryBuilder.getEncounterContentColumnName());
-        queryUtils.insertEncounter("E3", "P2", jul8, "e3 content for P2", queryBuilder.getEncounterContentColumnName());
+        queryUtils.insertEncounter("E1", "P1", twoHoursAgo, "e1 content for P1", queryBuilder.getEncounterContentColumnName());
+        queryUtils.insertEncounter("E2", "P1", oneHoursAgo, "e2 content for P1", queryBuilder.getEncounterContentColumnName());
+        queryUtils.insertEncounter("E3", "P2", twoHoursAgo, "e3 content for P2", queryBuilder.getEncounterContentColumnName());
 
-        queryUtils.insertEncounterByCatchment("E1", "D1", "D1d1","D1d1u1" , jul8);
-        queryUtils.insertEncounterByCatchment("E2", "D1", "D1d1","D1d1u1", jul9);
-        queryUtils.insertEncounterByCatchment("E3", "D2", "D2d2","D2d2u2" , jul8);
+        queryUtils.insertEncounterByCatchment("E1", "D1", "D1d1", "D1d1u1", twoHoursAgo);
+        queryUtils.insertEncounterByCatchment("E2", "D1", "D1d1", "D1d1u1", oneHoursAgo);
+        queryUtils.insertEncounterByCatchment("E3", "D2", "D2d2", "D2d2u2", twoHoursAgo);
 
         assertEquals(2, queryUtils.fetchCatchmentFeed("D1", "D1d1", year).size());
         assertEquals(1, queryUtils.fetchCatchmentFeed("D2", "D2d2", year).size());
@@ -144,8 +149,8 @@ public class EncounterRepositoryIT {
             put("district_id", "D1d1");
             put("upazila_id", "D1d1u1");
             put("year", String.valueOf(year));
-            put("created_at", TimeUuidUtil.uuidForDate(jul8).toString());
-        }});
+            put("created_at", TimeUuidUtil.uuidForDate(twoHoursAgo).toString());
+        }}, true);
 
         queryUtils.assertEncounterByCatchmentRow(rows.get(1), new HashMap<String, String>() {{
             put("encounter_id", "E2");
@@ -153,8 +158,8 @@ public class EncounterRepositoryIT {
             put("district_id", "D1d1");
             put("upazila_id", "D1d1u1");
             put("year", String.valueOf(year));
-            put("created_at", TimeUuidUtil.uuidForDate(jul9).toString());
-        }});
+            put("created_at", TimeUuidUtil.uuidForDate(oneHoursAgo).toString());
+        }}, true);
 
         queryUtils.assertEncounterByCatchmentRow(rows.get(2), new HashMap<String, String>() {{
             put("encounter_id", "E3");
@@ -162,18 +167,18 @@ public class EncounterRepositoryIT {
             put("district_id", "D1d1");
             put("upazila_id", "D1d1u1");
             put("year", String.valueOf(year));
-            put("created_at", TimeUuidUtil.uuidForDate(jul10).toString());
-            put("merged_at", TimeUuidUtil.uuidForDate(jul10).toString());
-        }});
+            put("created_at", TimeUuidUtil.uuidForDate(currentTime).toString());
+            put("merged_at", TimeUuidUtil.uuidForDate(currentTime).toString());
+        }}, false);
 
     }
 
     @Test
     public void shouldAssociateAnEncounterWithNewHealthId() {
-        final Date jul10 = new DateTime(2015, 07, 10, 0, 0).toDate();
-        org.joda.time.DateTimeUtils.setCurrentMillisFixed(jul10.getTime());
+        final Date currentTime = new Date();
+        org.joda.time.DateTimeUtils.setCurrentMillisFixed(currentTime.getTime());
 
-        EncounterBundle encounterBundle = new EncounterBundle("E1", "P1", "E1 content for P1",jul10);
+        EncounterBundle encounterBundle = new EncounterBundle("E1", "P1", "E1 content for P1", currentTime);
         queryUtils.insertEncounter(encounterBundle.getEncounterId(), encounterBundle.getHealthId(), encounterBundle.getReceivedAt(), encounterBundle.getEncounterContent(), queryBuilder.getEncounterContentColumnName());
         Row encounterBeforeMerge = queryUtils.fetchEncounter("E1");
         queryUtils.assertEncounterRow(encounterBeforeMerge, "E1", "P1", "E1 content for P1", null);
@@ -188,7 +193,20 @@ public class EncounterRepositoryIT {
         assertThat(encByPatient.size(), is(1));
         assertThat(encByPatient.get(0).getString("encounter_id"), is("E1"));
         assertThat(encByPatient.get(0).getString("health_id"), is("P2"));
-        assertThat(encByPatient.get(0).getUUID("merged_at").toString(), is(TimeUuidUtil.uuidForDate(jul10).toString()));
+        final String mergedAt = encByPatient.get(0).getUUID("merged_at").toString();
+        assertEquals(extractDateFromUuidString(mergedAt), new SimpleDateFormat("dd-MM-yyyy").format(currentTime));
+    }
+
+
+    private void assertUuids(Row encounterByCatchmentRow, HashMap<String, String> expectedEncounterByCatchment, String column) {
+        final String actualCreatedAt = encounterByCatchmentRow.getUUID(column).toString();
+        final String expectedCreatedAt = expectedEncounterByCatchment.get("created_at");
+        assertEquals(extractDateFromUuidString(expectedCreatedAt), extractDateFromUuidString(actualCreatedAt));
+    }
+
+    private String extractDateFromUuidString(String expectedCreatedAt) {
+        final SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy");
+        return format.format(TimeUuidUtil.getDateFromUUID(UUID.fromString(expectedCreatedAt)));
     }
 
     @Test
@@ -258,7 +276,7 @@ public class EncounterRepositoryIT {
         updateResponseSubscriber.assertNoErrors();
         updateResponseSubscriber.assertCompleted();
         assertTrue(updateResponseSubscriber.getOnNextEvents().get(0));
-        
+
         assertThat(queryUtils.fetchCatchmentFeed("20", "2015", year).size(), is(3));
         List<Row> rows = queryUtils.fetchCatchmentFeed("40", "4036", year);
         assertEquals(3, rows.size());
