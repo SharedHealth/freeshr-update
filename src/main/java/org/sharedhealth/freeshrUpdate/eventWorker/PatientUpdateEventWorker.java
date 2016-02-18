@@ -91,7 +91,6 @@ public class PatientUpdateEventWorker implements EventWorker {
         updateEncounterResponse.toBlocking().subscribe(new Action1<Boolean>() {
             @Override
             public void call(Boolean result) {
-                System.out.println(String.format("Encounters for patient %s %s updated", patientUpdate.getHealthId(), result ? "" : "not"));
                 LOG.debug(
                         String.format("Encounters for patient %s %s updated", patientUpdate.getHealthId(), result ? "" : "not"));
             }
@@ -158,9 +157,6 @@ public class PatientUpdateEventWorker implements EventWorker {
         return new Func1<Patient, Observable<Boolean>>() {
             public Observable<Boolean> call(final Patient patientMergedWith) {
                 if (patientMergedWith != null) {
-                    System.out.println("Patient health id:" + updatedPatientHealthId);
-                    System.out.println("Encounter Repo:" + encounterRepository);
-                    //final String updatedPatientHealthId = patientUpdate.getHealthId();
                     return encounterRepository.getAllEncounters(updatedPatientHealthId).flatMap(new Func1<List<EncounterBundle>, Observable<Boolean>>() {
                         @Override
                         public Observable<Boolean> call(List<EncounterBundle> encounterBundles) {

@@ -8,6 +8,7 @@ import org.sharedhealth.freeshrUpdate.atomFeed.AtomFeedSpringTransactionManager;
 import org.sharedhealth.freeshrUpdate.config.SHREnvironmentMock;
 import org.sharedhealth.freeshrUpdate.config.ShrUpdateConfig;
 import org.sharedhealth.freeshrUpdate.domain.EncounterBundle;
+import org.sharedhealth.freeshrUpdate.utils.TimeUuidUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -17,6 +18,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(initializers = SHREnvironmentMock.class, classes = ShrUpdateConfig.class)
@@ -41,7 +43,9 @@ public class EncounterMovementTrackerIT {
     public void testTrackPatientEncounterMovement() throws Exception {
         List<EncounterBundle> bundles = new ArrayList<>();
         for (int i = 1; i < 4; i++) {
-            bundles.add(new EncounterBundle("e"+i, "P1", "c"+i, new Date() ));
+            Date receivedAt = new Date();
+            UUID receivedAtUuid = TimeUuidUtil.uuidForDate(receivedAt);
+            bundles.add(new EncounterBundle("e"+i, "P1", "c"+i, receivedAt, receivedAtUuid));
         }
         List<EncounterBundle> bundleList = encounterMovementTracker.trackPatientEncounterMovement("P1", "P2", bundles);
         Assert.assertEquals(3, bundleList.size());

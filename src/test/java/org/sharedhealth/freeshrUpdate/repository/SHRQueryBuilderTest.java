@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static java.util.Arrays.asList;
-import static junit.framework.Assert.*;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.sharedhealth.freeshrUpdate.utils.KeySpaceUtils.*;
@@ -167,14 +167,13 @@ public class SHRQueryBuilderTest {
     public void shouldCreateUpdateEncounterQueryAsNormal() throws Exception {
         when(configuration.getCassandraKeySpace()).thenReturn("keyspace");
         PatientUpdate patientUpdate = PatientUpdateMother.notConfidentialPatient();
-        Date receivedDate = new Date();
-        receivedDate.setTime(12345);
-        EncounterDetail encounterDetail = new EncounterDetail("123", receivedDate);
+        UUID receivedAtUuid = TimeUuidUtil.uuidForDate(new Date());
+        EncounterDetail encounterDetail = new EncounterDetail("123", receivedAtUuid);
 
         Statement updateEncounterQuery = new SHRQueryBuilder(configuration).updateEncounterQuery(patientUpdate, encounterDetail);
 
         String expectedQuery = String.format("UPDATE keyspace.%s SET %s='N' WHERE %s='123' AND %s=%s;",
-                ENCOUNTER_TABLE_NAME, PATIENT_CONFIDENTIALITY_COLUMN_NAME, ENCOUNTER_ID_COLUMN_NAME, RECEIVED_AT_COLUMN_NAME, TimeUuidUtil.uuidForDate(receivedDate));
+                ENCOUNTER_TABLE_NAME, PATIENT_CONFIDENTIALITY_COLUMN_NAME, ENCOUNTER_ID_COLUMN_NAME, RECEIVED_AT_COLUMN_NAME, receivedAtUuid);
         assertEquals(expectedQuery, updateEncounterQuery.toString());
     }
 
@@ -182,14 +181,13 @@ public class SHRQueryBuilderTest {
     public void shouldCreateUpdateEncounterQueryAsVeryRestricted() throws Exception {
         when(configuration.getCassandraKeySpace()).thenReturn("keyspace");
         PatientUpdate patientUpdate = PatientUpdateMother.confidentialPatient();
-        Date receivedDate = new Date();
-        receivedDate.setTime(12345);
-        EncounterDetail encounterDetail = new EncounterDetail("123", receivedDate);
+        UUID receivedAtUuid = TimeUuidUtil.uuidForDate(new Date());
+        EncounterDetail encounterDetail = new EncounterDetail("123", receivedAtUuid);
 
         Statement updateEncounterQuery = new SHRQueryBuilder(configuration).updateEncounterQuery(patientUpdate, encounterDetail);
 
         String expectedQuery = String.format("UPDATE keyspace.%s SET %s='V' WHERE %s='123' AND %s=%s;",
-                ENCOUNTER_TABLE_NAME, PATIENT_CONFIDENTIALITY_COLUMN_NAME, ENCOUNTER_ID_COLUMN_NAME, RECEIVED_AT_COLUMN_NAME, TimeUuidUtil.uuidForDate(receivedDate));
+                ENCOUNTER_TABLE_NAME, PATIENT_CONFIDENTIALITY_COLUMN_NAME, ENCOUNTER_ID_COLUMN_NAME, RECEIVED_AT_COLUMN_NAME, receivedAtUuid);
         assertEquals(expectedQuery, updateEncounterQuery.toString());
     }
     
@@ -215,7 +213,7 @@ public class SHRQueryBuilderTest {
         Date receivedAt = new Date();
         UUID uuid = TimeUuidUtil.uuidForDate(receivedAt);
 
-        EncounterBundle encounterBundle = new EncounterBundle("E1", "P1", "E1 content", receivedAt);
+        EncounterBundle encounterBundle = new EncounterBundle("E1", "P1", "E1 content", receivedAt, uuid);
 
         Statement updateEncStatement = new SHRQueryBuilder(configuration).updateEncounterOnMergeStatement(encounterBundle, "P2");
         String expectedQuery = String.format("UPDATE keyspace.%s SET content_v1='%s',health_id='%s' WHERE encounter_id='%s' AND received_at=%s;",
@@ -231,7 +229,7 @@ public class SHRQueryBuilderTest {
 
         UUID uuid = TimeUuidUtil.uuidForDate(new Date());
 
-        EncounterBundle encounterBundle = new EncounterBundle("E1", "P1", "E1 content", null);
+        EncounterBundle encounterBundle = new EncounterBundle("E1", "P1", "E1 content", null, uuid);
 
         Statement insert = new SHRQueryBuilder(configuration).insertEncByPatientStatement(encounterBundle, uuid, "P2", uuid);
         String expectedQuery = String.format("INSERT INTO keyspace.%s(%s,%s,%s,%s) VALUES ('%s','%s',%s,%s);",
@@ -239,7 +237,6 @@ public class SHRQueryBuilderTest {
                             encounterBundle.getEncounterId(), "P2", uuid, uuid);
 
         assertEquals(expectedQuery, insert.toString());
-
-
     }
+
 }

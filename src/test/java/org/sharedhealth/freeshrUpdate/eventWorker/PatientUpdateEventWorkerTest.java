@@ -17,6 +17,7 @@ import org.sharedhealth.freeshrUpdate.repository.EncounterRepository;
 import org.sharedhealth.freeshrUpdate.repository.PatientRepository;
 import org.sharedhealth.freeshrUpdate.utils.FileUtil;
 import org.sharedhealth.freeshrUpdate.utils.StringUtils;
+import org.sharedhealth.freeshrUpdate.utils.TimeUuidUtil;
 import rx.Observable;
 
 import java.io.IOException;
@@ -179,7 +180,11 @@ public class PatientUpdateEventWorkerTest {
         entry.setTitle("foo");
         entry.setContents(genarateChangeContent("feeds/update_feed_for_merge.txt"));
         entry.setPublished(new Date());
-        final EncounterBundle p1E1 = new EncounterBundle("E1", "P1", "C1", new Date());
+
+        Date receivedAt = new Date();
+        UUID receivedAtUuid = TimeUuidUtil.uuidForDate(receivedAt);
+
+        final EncounterBundle p1E1 = new EncounterBundle("E1", "P1", "C1", new Date(), receivedAtUuid);
         when(encounterRepository.getAllEncounters(anyString())).thenReturn(Observable.<List<EncounterBundle>>just(new ArrayList<EncounterBundle>(Arrays.asList(p1E1))));
         // when(encounterRepository.getAllEncounters(anyString())).thenReturn(Observable.<List<EncounterBundle>>just(new ArrayList<EncounterBundle>()));
         //when(encounterRepository.applyMerge(any(PatientUpdate.class), any(Patient.class))).thenReturn(Observable.just(true));

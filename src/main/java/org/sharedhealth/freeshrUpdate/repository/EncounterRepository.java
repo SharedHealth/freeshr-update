@@ -9,7 +9,6 @@ import com.datastax.driver.core.querybuilder.Insert;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.datastax.driver.core.querybuilder.Update;
 import me.prettyprint.cassandra.utils.TimeUUIDUtils;
-import org.joda.time.DateTimeUtils;
 import org.sharedhealth.freeshrUpdate.domain.Address;
 import org.sharedhealth.freeshrUpdate.domain.EncounterBundle;
 import org.sharedhealth.freeshrUpdate.domain.Patient;
@@ -23,7 +22,6 @@ import org.springframework.cassandra.core.CqlOperations;
 import org.springframework.stereotype.Component;
 import rx.Observable;
 import rx.functions.Func1;
-import rx.functions.Func2;
 import rx.schedulers.Schedulers;
 
 import java.util.ArrayList;
@@ -84,17 +82,15 @@ public class EncounterRepository {
     }
 
     public Observable<Boolean> applyMerge(final PatientUpdate patientUpdate, Patient patientToBeMergedWith) {
-//        System.out.println("Applying Encounter merge");
         Observable<EncounterBundle> encounterBundlesObservable = getEncounterBundles(patientUpdate.getHealthId());
-        Observable<Boolean> encounterMergeObservable = encounterBundlesObservable.flatMap(getEncountersSuccess(patientToBeMergedWith));
+        Observable<Boolean> encounterMergeObservable = encounterBundlesObservable.flatMap(onEncounterBundlesSucess(patientToBeMergedWith));
         return encounterMergeObservable;
     }
 
-    private Func1<EncounterBundle, Observable<Boolean>> getEncountersSuccess(final Patient patientToBeMergedWith) {
+    private Func1<EncounterBundle, Observable<Boolean>> onEncounterBundlesSucess(final Patient patientToBeMergedWith) {
         return new Func1<EncounterBundle, Observable<Boolean>>() {
             @Override
             public Observable<Boolean> call(EncounterBundle encounterBundle) {
-//                System.out.println("Processing encounter bundle");
                 return associateEncounterBundleTo(encounterBundle, patientToBeMergedWith);
             }
         };
@@ -106,7 +102,6 @@ public class EncounterRepository {
         return encounterIdsForPatient.flatMap(new Func1<List<String>, Observable<EncounterBundle>>() {
             @Override
             public Observable<EncounterBundle> call(List<String> encounterIds) {
-//                System.out.println("Constructing Encounter Bundles");
                 Statement encountersByEncounterIdsQuery = shrQueryBuilder.findEncounterBundlesByEncounterIdsQuery(encounterIds);
                 Observable<ResultSet> observable = Observable.from(cqlOperations.queryAsynchronously(encountersByEncounterIdsQuery.toString()));
                 return observable.flatMap(new Func1<ResultSet, Observable<EncounterBundle>>() {
@@ -117,9 +112,10 @@ public class EncounterRepository {
                             String encounterId = row.getString(ENCOUNTER_ID_COLUMN_NAME);
                             String healthId = row.getString(HEALTH_ID_COLUMN_NAME);
                             String content = row.getString(shrQueryBuilder.getEncounterContentColumnName());
-                            Date receivedAt = TimeUuidUtil.getDateFromUUID(row.getUUID(RECEIVED_AT_COLUMN_NAME));
+                            UUID receivedAtUuid = row.getUUID(RECEIVED_AT_COLUMN_NAME);
+                            Date receivedAt = TimeUuidUtil.getDateFromUUID(receivedAtUuid);
 
-                            encountersBundles.add(new EncounterBundle(encounterId, healthId, content, receivedAt));
+                            encountersBundles.add(new EncounterBundle(encounterId, healthId, content, receivedAt, receivedAtUuid));
                         }
                         return Observable.from(encountersBundles);
                     }
@@ -129,7 +125,6 @@ public class EncounterRepository {
     }
 
     public Observable<Boolean> associateEncounterBundleTo(EncounterBundle encounterBundle, Patient patientToBeMergeWith) {
-//        System.out.println("Substituting healthIds");
         String healthIdToMergeWith = patientToBeMergeWith.getHealthId();
         encounterBundle.associateTo(healthIdToMergeWith);
 
@@ -160,7 +155,6 @@ public class EncounterRepository {
         return observable.flatMap(new Func1<ResultSet, Observable<List<String>>>() {
             @Override
             public Observable<List<String>> call(ResultSet rows) {
-//                System.out.println("Fetching Encounter Ids");
                 LOG.debug("Fetching All Encounters for patient %s", healthId);
                 List<String> encounterIds = new ArrayList<>();
                 for (Row row : rows.all()) {
@@ -183,8 +177,8 @@ public class EncounterRepository {
                         List<EncounterDetail> encountersDetails = new ArrayList<>();
                         for (Row row : rows.all()) {
                             String encounterId = row.getString(ENCOUNTER_ID_COLUMN_NAME);
-                            Date date = TimeUuidUtil.getDateFromUUID(row.getUUID(RECEIVED_AT_COLUMN_NAME));
-                            encountersDetails.add(new EncounterDetail(encounterId, date));
+                            UUID receivedAtUuid = row.getUUID(RECEIVED_AT_COLUMN_NAME);
+                            encountersDetails.add(new EncounterDetail(encounterId, receivedAtUuid));
                         }
                         return Observable.just(encountersDetails);
                     }
@@ -209,9 +203,10 @@ public class EncounterRepository {
                             String encounterId = row.getString(ENCOUNTER_ID_COLUMN_NAME);
                             String healthId = row.getString(HEALTH_ID_COLUMN_NAME);
                             String content = row.getString(shrQueryBuilder.getEncounterContentColumnName());
-                            Date receivedAt = TimeUuidUtil.getDateFromUUID(row.getUUID(RECEIVED_AT_COLUMN_NAME));
+                            UUID receivedAtUuid = row.getUUID(RECEIVED_AT_COLUMN_NAME);
+                            Date receivedAt = TimeUuidUtil.getDateFromUUID(receivedAtUuid);
 
-                            encountersBundles.add(new EncounterBundle(encounterId, healthId, content, receivedAt));
+                            encountersBundles.add(new EncounterBundle(encounterId, healthId, content, receivedAt, receivedAtUuid));
                         }
                         return Observable.just(encountersBundles);
                     }

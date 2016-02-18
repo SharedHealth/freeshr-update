@@ -1,23 +1,23 @@
 package org.sharedhealth.freeshrUpdate.repository;
 
-import java.util.Date;
+import java.util.UUID;
 
 public class EncounterDetail {
-    
-    private String encounterId;
-    private Date receivedDate;
 
-    public EncounterDetail(String encounterId, Date receivedDate) {
+    private String encounterId;
+    private UUID receivedAtUuid;
+
+    public EncounterDetail(String encounterId, UUID receivedAtUuid) {
         this.encounterId = encounterId;
-        this.receivedDate = receivedDate;
+        this.receivedAtUuid = receivedAtUuid;
     }
 
     public String getEncounterId() {
-    
+
         return encounterId;
     }
 
-    public Date getReceivedDate() {
-        return receivedDate;
+    public UUID getReceivedAtUuid() {
+        return receivedAtUuid;
     }
 }

@@ -13,7 +13,6 @@ import org.sharedhealth.freeshrUpdate.config.ShrUpdateConfig;
 import org.sharedhealth.freeshrUpdate.config.ShrUpdateConfiguration;
 import org.sharedhealth.freeshrUpdate.domain.EncounterBundle;
 import org.sharedhealth.freeshrUpdate.domain.Patient;
-import org.sharedhealth.freeshrUpdate.eventWorker.EncounterMovementTracker;
 import org.sharedhealth.freeshrUpdate.eventWorker.PatientUpdateEventWorker;
 import org.sharedhealth.freeshrUpdate.repository.EncounterRepository;
 import org.sharedhealth.freeshrUpdate.repository.SHRQueryBuilder;
@@ -186,8 +185,6 @@ public class MCIFeedProcessorIT {
         when(mciWebClient.getFeed(properties.getMciPatientUpdateFeedUrl())).thenReturn(FileUtil.asString("feeds/mciPatientFeedWithMergeAndUpdateEvents.xml"));
         when(mciWebClient.getFeed(new URI("http://127.0.0.1:8081/api/v1/feed/patients?last_marker=end"))).thenReturn(FileUtil.asString("feeds/emptyFeed.xml"));
 
-        final Row rowHenry = queryUtils.fetchPatient(p1);
-        debugPatientRow(rowHenry, p1);
 
         mciFeedProcessor.pullLatest();
 
@@ -200,18 +197,8 @@ public class MCIFeedProcessorIT {
         assertEquals("Should have processed failed event", 0, mciFeedProcessor.getNumberOfFailedEvents());
     }
 
-    private void debugPatientRow(Row rowHenry, String patientName) {
-        System.out.println("******** Details of " + patientName + " ********");
-        System.out.println("healthId:" + rowHenry.getString(HEALTH_ID_COLUMN_NAME));
-        System.out.println("merged with:" + rowHenry.getString(MERGED_WITH_COLUMN_NAME));
-        System.out.println("active:" + rowHenry.getBool(ACTIVE_COLUMN_NAME));
-        System.out.println("******** Details of " + patientName + " ********");
-    }
 
     private void assertPatient(Patient patient, Row row) {
-        System.out.println("healthId:" + row.getString(HEALTH_ID_COLUMN_NAME));
-        System.out.println("merged with:" + row.getString(MERGED_WITH_COLUMN_NAME));
-        System.out.println("active?:" + row.getBool(ACTIVE_COLUMN_NAME));
         assertEquals(patient.getMergedWith(), row.getString(MERGED_WITH_COLUMN_NAME));
         assertEquals(patient.isActive(), row.getBool(ACTIVE_COLUMN_NAME));
         assertEquals(patient.getHealthId(), row.getString(HEALTH_ID_COLUMN_NAME));

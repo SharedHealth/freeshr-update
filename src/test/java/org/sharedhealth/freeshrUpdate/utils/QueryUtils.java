@@ -6,6 +6,7 @@ import com.datastax.driver.core.Row;
 import com.datastax.driver.core.querybuilder.Insert;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.datastax.driver.core.querybuilder.Select;
+import me.prettyprint.cassandra.utils.TimeUUIDUtils;
 import org.sharedhealth.freeshrUpdate.domain.EncounterBundle;
 import org.springframework.cassandra.core.CqlOperations;
 
@@ -28,7 +29,7 @@ public class QueryUtils {
     }
 
     public void insertEncByPatient(String encounterId, String healthId, Date createdAt) {
-        Insert insert = QueryBuilder.insertInto("freeshr", "enc_by_patient").value("encounter_id", encounterId).value("health_id", healthId).value("created_at", TimeUuidUtil.uuidForDate(createdAt));
+        Insert insert = QueryBuilder.insertInto("freeshr", "enc_by_patient").value("encounter_id", encounterId).value("health_id", healthId).value("created_at", TimeUUIDUtils.getTimeUUID(createdAt.getTime()));
         cqlOperations.execute(insert);
     }
 
@@ -56,7 +57,7 @@ public class QueryUtils {
     }
 
     public void insertEncounter(String encounterId, String healthId, Date recievedAt, String content, String contentColumnName) {
-        Insert insert = QueryBuilder.insertInto("freeshr", "encounter").value("encounter_id", encounterId).value("health_id", healthId).value("received_at", TimeUuidUtil.uuidForDate(recievedAt)).value(contentColumnName, content);
+        Insert insert = QueryBuilder.insertInto("freeshr", "encounter").value("encounter_id", encounterId).value("health_id", healthId).value("received_at", TimeUUIDUtils.getTimeUUID(recievedAt.getTime())).value(contentColumnName, content);
         cqlOperations.execute(insert);
     }
 
@@ -66,7 +67,7 @@ public class QueryUtils {
                 .value("district_id", concatenatedDistrictId)
                 .value("upazila_id", concatenatedUpazillaId)
                 .value("year", DateUtil.getYearOf(createdAt))
-                .value("created_at", TimeUuidUtil.uuidForDate(createdAt));
+                .value("created_at", TimeUUIDUtils.getTimeUUID(createdAt.getTime()));
         cqlOperations.execute(insert);
     }
 
@@ -128,7 +129,7 @@ public class QueryUtils {
     }
 
     private String extractDateFromUuidString(String expectedCreatedAt) {
-        final SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy");
+        final SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
         return format.format(TimeUuidUtil.getDateFromUUID(UUID.fromString(expectedCreatedAt)));
     }
 }

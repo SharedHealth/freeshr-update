@@ -28,7 +28,6 @@ public class EncounterMovementTracker {
     }
 
     public List<EncounterBundle> trackPatientEncounterMovement(final String mergedPatientId, final String activePatientId, final List<EncounterBundle> bundles) {
-        System.out.println("Tracking patient merge");
 
         return txManager.executeWithTransaction(new AFTransactionWork<List<EncounterBundle>>() {
             @Override
@@ -229,7 +228,6 @@ public class EncounterMovementTracker {
     }
 
     public void doneMovingEncounter(final String encounterId, final String associatedPatientId) {
-        System.out.println(String.format("marking movement Encounter [%s] to Patient [%s] as done ..", encounterId, associatedPatientId));
         txManager.executeWithTransaction(new AFTransactionWorkWithoutResult() {
             @Override
             protected void doInTransaction() {
@@ -244,7 +242,6 @@ public class EncounterMovementTracker {
                     stmt.setString(1, encounterId);
                     stmt.setString(2, associatedPatientId);
                     stmt.executeUpdate();
-                    System.out.println(String.format("Done moving Encounter [%s] to Patient [%s]", encounterId, associatedPatientId));
                 } catch (SQLException sqe) {
                     throw new RuntimeException(sqe);
                 } finally {
