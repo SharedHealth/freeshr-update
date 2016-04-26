@@ -119,7 +119,7 @@ task exportProperties(dependsOn: 'assembly') << {
 
 task dist(dependsOn: 'exportProperties', type: Rpm) {
     packageName = 'freeshr-update'
-    version = '2.3'
+    version = '2.4'
     release = project.hasProperty('release') ? project.release : '1'
     arch = NOARCH
     os = LINUX
