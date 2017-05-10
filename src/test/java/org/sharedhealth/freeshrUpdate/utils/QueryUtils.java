@@ -57,7 +57,11 @@ public class QueryUtils {
     }
 
     public void insertEncounter(String encounterId, String healthId, Date recievedAt, String content, String contentColumnName) {
-        Insert insert = QueryBuilder.insertInto("freeshr", "encounter").value("encounter_id", encounterId).value("health_id", healthId).value("received_at", TimeUUIDUtils.getTimeUUID(recievedAt.getTime())).value(contentColumnName, content);
+        Insert insert = QueryBuilder.insertInto("freeshr", "encounter")
+                .value("encounter_id", encounterId)
+                .value("health_id", healthId)
+                .value("received_at", TimeUUIDUtils.getTimeUUID(recievedAt.getTime()))
+                .value(contentColumnName, content);
         cqlOperations.execute(insert);
     }
 

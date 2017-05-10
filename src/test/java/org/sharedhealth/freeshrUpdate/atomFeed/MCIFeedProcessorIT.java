@@ -2,7 +2,10 @@ package org.sharedhealth.freeshrUpdate.atomFeed;
 
 import com.datastax.driver.core.Row;
 import org.joda.time.DateTime;
-import org.junit.*;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.FixMethodOrder;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
 import org.mockito.InjectMocks;
@@ -30,11 +33,11 @@ import rx.observers.TestSubscriber;
 import java.net.URI;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
+import java.util.Date;
 import java.util.List;
 
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.sharedhealth.freeshrUpdate.utils.KeySpaceUtils.*;
@@ -89,11 +92,22 @@ public class MCIFeedProcessorIT {
         String p2 = "Patient2";
         String e2 = "Encounter2";
         String e1 = "Encounter1";
+        String contentForEnc1 = FileUtil.asString("encounters/stu3/encounter1.xml");
+        String contentForEnc2 = FileUtil.asString("encounters/stu3/encounter1.xml");
+
+        assertTrue(contentForEnc1.contains("http://mci-showcase.twhosted.com/api/default/patients/Patient1"));
+        assertTrue(contentForEnc2.contains("http://mci-showcase.twhosted.com/api/default/patients/Patient1"));
+
+        Date recievedAtForEnc1 = new DateTime(2015, 11, 25, 0, 0, 0).toDate();
+        Date recievedAtForEnc2 = new DateTime(2015, 11, 26, 0, 0, 0).toDate();
         queryUtils.insertPatient(p1);
-        queryUtils.insertEncounter(e1, p1, new DateTime(2015, 11, 25, 0, 0, 0).toDate(), e1 + " for " + p1, queryBuilder.getEncounterContentColumnName());
-        queryUtils.insertEncByPatient(e1, p1, new DateTime(2015, 11, 25, 0, 0, 0).toDate());
-        queryUtils.insertEncounter(e2, p1, new DateTime(2015, 11, 26, 0, 0, 0).toDate(), e2 + " for " + p1, queryBuilder.getEncounterContentColumnName());
-        queryUtils.insertEncByPatient(e2, p1, new DateTime(2015, 11, 26, 0, 0, 0).toDate());
+
+        queryUtils.insertEncounter(e1, p1, recievedAtForEnc1, contentForEnc1, queryBuilder.getEncounterContentColumnName());
+        queryUtils.insertEncByPatient(e1, p1, recievedAtForEnc1);
+
+        queryUtils.insertEncounter(e2, p1, recievedAtForEnc2, contentForEnc2, queryBuilder.getEncounterContentColumnName());
+        queryUtils.insertEncByPatient(e2, p1, recievedAtForEnc2);
+
         List<String> list = encounterRepository.getEncounterIdsForPatient(p1).toBlocking().first();
         assertEquals(2, list.size());
 
@@ -127,7 +141,11 @@ public class MCIFeedProcessorIT {
 
         List<EncounterBundle> encountersForP2 = encounterBundleSubscriber.getOnNextEvents();
         assertEquals(2, encountersForP2.size());
-        queryUtils.assertEncounter(encountersForP2.get(0), e1, p2, e1 + " for " + p2);
+
+        assertFalse(encountersForP2.get(0).getEncounterContent().contains("http://mci-showcase.twhosted.com/api/default/patients/Patient1"));
+        assertFalse(encountersForP2.get(1).getEncounterContent().contains("http://mci-showcase.twhosted.com/api/default/patients/Patient1"));
+        assertTrue(encountersForP2.get(0).getEncounterContent().contains("http://mci-showcase.twhosted.com/api/default/patients/Patient2"));
+        assertTrue(encountersForP2.get(1).getEncounterContent().contains("http://mci-showcase.twhosted.com/api/default/patients/Patient2"));
     }
 
     @Test
