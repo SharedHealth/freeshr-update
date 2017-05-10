@@ -103,7 +103,7 @@ public class QueryUtils {
     public void assertEncounterRow(Row encounterRow, String encounterId, String healthId, String content, String confidentiality) {
         assertEquals(encounterId, encounterRow.getString("encounter_id"));
         assertEquals(healthId, encounterRow.getString("health_id"));
-        assertEquals(content, encounterRow.getString("content_v1"));
+        assertEquals(content, encounterRow.getString("content_v3"));
         assertEquals(confidentiality, encounterRow.getString("patient_confidentiality"));
     }
 
