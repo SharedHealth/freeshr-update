@@ -190,7 +190,7 @@ public class SHRQueryBuilderTest {
                 ENCOUNTER_TABLE_NAME, PATIENT_CONFIDENTIALITY_COLUMN_NAME, ENCOUNTER_ID_COLUMN_NAME, RECEIVED_AT_COLUMN_NAME, receivedAtUuid);
         assertEquals(expectedQuery, updateEncounterQuery.toString());
     }
-    
+
     @Test
     public void shouldCreateUpdatePatientQueryOnMerge() throws Exception {
         when(configuration.getCassandraKeySpace()).thenReturn("keyspace");
@@ -198,11 +198,12 @@ public class SHRQueryBuilderTest {
         Date receivedDate = new Date();
         receivedDate.setTime(12345);
 
-        Statement updatePatientQuery = new SHRQueryBuilder(configuration).updatePatientQuery("123", patientUpdate.getPatientMergeChanges());
+        String updatePatientQuery = new SHRQueryBuilder(configuration).updatePatientQuery("123", patientUpdate.getPatientMergeChanges()).toString();
 
-        String expectedQuery = String.format("UPDATE keyspace.%s SET %s=false,%s='12345' WHERE %s='123';",
-                PATIENT_TABLE_NAME, ACTIVE_COLUMN_NAME, MERGED_WITH_COLUMN_NAME, HEALTH_ID_COLUMN_NAME);
-        assertEquals(expectedQuery, updatePatientQuery.toString());
+        assertTrue(updatePatientQuery.startsWith("UPDATE keyspace.patient SET"));
+        assertTrue(updatePatientQuery.contains("active=false"));
+        assertTrue(updatePatientQuery.contains("merged_with='12345'"));
+        assertTrue(updatePatientQuery.endsWith("WHERE health_id='123';"));
     }
 
     @Test
